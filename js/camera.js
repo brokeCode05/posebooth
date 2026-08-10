@@ -69,6 +69,10 @@
       doneRestart: document.getElementById('btn-done-restart'),
       doneBtn: document.getElementById('btn-done'),
       doneCheck: document.getElementById('done-check'),
+      customize: document.getElementById('shoot-customize'),
+      stripPreview: document.getElementById('strip-preview'),
+      customContinue: document.getElementById('btn-custom-continue'),
+      customRestart: document.getElementById('btn-custom-restart'),
       footVer: document.getElementById('foot-ver'),
       flash: document.getElementById('flash')
     };
@@ -430,6 +434,8 @@
     hideOverlay(els.error);
     hideCountdown();
     els.done.hidden = true;
+    els.customize.hidden = true;
+    els.stripPreview.innerHTML = '';
     els.hint.hidden = true;
     els.capture.hidden = true;
     els.capture.disabled = false;
@@ -523,6 +529,18 @@
     setTimeout(updateDoneCheck, 600);
   }
 
+  /* ── Customize (Phase 4A — strip layout renderer) ───────────────────── */
+  // The four captured photos are rendered into a live strip preview using
+  // the layout chosen in Phase 1. Poses stay out — only photo data is used.
+  function enterCustomize() {
+    var s = Posebooth.getSession();
+    if (s.photos.length < PHOTO_LIMIT) return; // safety: exactly 4 photos
+    if (!window.Strip) return;
+    els.done.hidden = true;
+    els.customize.hidden = false;
+    Strip.renderPreview(els.stripPreview, Posebooth.getConfig().layout, s.photos);
+  }
+
   /* ── Cleanup ────────────────────────────────────────────────────────── */
   function stopStream() {
     if (session.stream) {
@@ -544,7 +562,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '3.5.7';
+  var DEBUG_VERSION = '4.0.0';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
@@ -748,8 +766,14 @@
     els.cancel.addEventListener('click', cancel);
     els.retry.addEventListener('click', retryCamera);
     els.backSetup.addEventListener('click', cancel);
-    els.doneBtn.addEventListener('click', function () {
-      // Placeholder — Phase 4 implements strip customization.
+    els.doneBtn.addEventListener('click', enterCustomize);
+    els.customContinue.addEventListener('click', function () {
+      // Placeholder — Phase 4B adds colors, styles, filters and download.
+    });
+    els.customRestart.addEventListener('click', function () {
+      if (window.Posebooth) Posebooth.clearPhotos();
+      exitShooting();
+      if (window.Posebooth) Posebooth.navigate('ready');
     });
     els.doneRestart.addEventListener('click', function () {
       if (window.Posebooth) Posebooth.clearPhotos();

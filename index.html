@@ -26,7 +26,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="css/style.css?v=3.5.7" />
+    <link rel="stylesheet" href="css/style.css?v=4.0.0" />
   </head>
 
   <body>
@@ -494,6 +494,23 @@
             </button>
             <p class="done-note">Strip customization is coming in a later phase.</p>
           </div>
+
+          <!-- Customize your strip (Phase 4A — layout renderer only) -->
+          <div class="shoot-customize" id="shoot-customize" hidden>
+            <p class="step-eyebrow">Almost done</p>
+            <h2 class="done-title">Customize your strip</h2>
+            <p class="done-sub">Here are your four photos, in the layout you picked.</p>
+
+            <div class="strip-stage" id="strip-stage">
+              <div class="strip-preview" id="strip-preview" data-layout="vertical"></div>
+            </div>
+
+            <p class="strip-note">Colors, styles, filters and downloading arrive in the next steps.</p>
+            <button class="btn btn-primary" id="btn-custom-continue" type="button">Continue</button>
+            <button class="btn btn-ghost btn-sm btn-done-ghost" id="btn-custom-restart" type="button">
+              Start a new session
+            </button>
+          </div>
         </section>
       </div>
     </main>
@@ -501,11 +518,12 @@
     <!-- ============ SITE FOOTER ============ -->
     <footer class="site-foot wrap">
       <span>© 2026 John Bryan Capellan — built by hand, no frameworks.</span>
-      <button class="foot-ver" id="foot-ver" type="button" title="Version & debug panel">v3.5.7</button>
+      <button class="foot-ver" id="foot-ver" type="button" title="Version & debug panel">v4.0.0</button>
       <a href="https://github.com/brokeCode05" target="_blank" rel="noopener">GitHub</a>
     </footer>
 
-    <script src="js/app.js?v=3.5.7"></script>
-    <script src="js/camera.js?v=3.5.7"></script>
+    <script src="js/app.js?v=4.0.0"></script>
+    <script src="js/camera.js?v=4.0.0"></script>
+    <script src="js/strip.js?v=4.0.0"></script>
   </body>
 </html>

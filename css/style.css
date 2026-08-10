@@ -1683,3 +1683,85 @@ a {
   flex-wrap: wrap;
 }
 
+/* ==========================================================================
+   Phase 4A — Photo strip layout renderer (customize screen)
+   ========================================================================== */
+
+.shoot-customize {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 10px 0 6px;
+}
+
+.strip-stage {
+  margin: 2px 0 6px;
+}
+
+/* The strip itself — a white backing with the four photos, tight gaps. */
+.strip-preview {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+}
+
+.strip-preview img {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+  border-radius: 2px;
+  background: var(--surface-2);
+}
+
+/* Vertical — a column of four, like a classic photo strip */
+.strip-preview[data-layout="vertical"] {
+  flex-direction: column;
+  align-items: center;
+}
+
+.strip-preview[data-layout="vertical"] img {
+  width: 200px;
+}
+
+/* Horizontal — a row of four */
+.strip-preview[data-layout="horizontal"] img {
+  width: 118px;
+}
+
+/* 2 × 2 grid */
+.strip-preview[data-layout="grid"] {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  width: 280px;
+}
+
+.strip-preview[data-layout="grid"] img {
+  width: 100%;
+}
+
+.strip-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin: 14px 0;
+}
+
+@media (max-width: 520px) {
+  .strip-preview[data-layout="vertical"] img {
+    width: 160px;
+  }
+
+  .strip-preview[data-layout="horizontal"] img {
+    width: 90px;
+  }
+
+  .strip-preview[data-layout="grid"] {
+    width: 220px;
+  }
+}
+
