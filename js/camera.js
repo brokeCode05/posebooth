@@ -504,7 +504,8 @@
 
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
-  var DEBUG_VERSION = '3.5.2';
+  var debugTimer = null;
+  var DEBUG_VERSION = '3.5.3';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
@@ -578,6 +579,24 @@
     if (debugPanel) debugPanel.hidden = true;
   }
 
+  // Run the REAL completion path with a fake 4-photo session. This is the
+  // same finish() the real flow uses, so it reveals whether the compare
+  // branch is actually reached.
+  function debugSimulateFullRun() {
+    if (!els) cacheEls();
+    var cfg = Posebooth.getConfig();
+    var posePaths = POSE_FILES[cfg.participants] || POSE_FILES['1'];
+    Posebooth.clearPhotos();
+    for (var i = 0; i < 4; i++) {
+      Posebooth.addPhoto(placeholderPhoto(i + 1), posePaths[i]);
+    }
+    session.active = true;
+    els.booth.classList.add('is-shooting');
+    els.shootView.hidden = false;
+    finish();
+    if (debugPanel) debugPanel.hidden = true;
+  }
+
   function buildDebugPanel() {
     if (debugPanel) return;
     var p = document.createElement('div');
@@ -589,6 +608,7 @@
       '<div class="debug-body" id="debug-body"></div>' +
       '<div class="debug-actions">' +
       '<button class="btn btn-primary btn-sm" id="debug-preview" type="button">Preview final comparison</button>' +
+      '<button class="btn btn-primary btn-sm" id="debug-sim" type="button">Simulate full run</button>' +
       '<button class="btn btn-ghost btn-sm" id="debug-close2" type="button">Close</button>' +
       '</div>';
     document.body.appendChild(p);
@@ -597,6 +617,7 @@
     p.querySelector('.debug-close').addEventListener('click', toggleDebugPanel);
     p.querySelector('#debug-close2').addEventListener('click', toggleDebugPanel);
     p.querySelector('#debug-preview').addEventListener('click', debugPreviewFinalCompare);
+    p.querySelector('#debug-sim').addEventListener('click', debugSimulateFullRun);
   }
 
   function refreshDebugPanel() {
@@ -620,7 +641,13 @@
   function toggleDebugPanel() {
     buildDebugPanel();
     debugPanel.hidden = !debugPanel.hidden;
-    if (!debugPanel.hidden) refreshDebugPanel();
+    if (!debugPanel.hidden) {
+      refreshDebugPanel();
+      if (!debugTimer) debugTimer = setInterval(refreshDebugPanel, 1000);
+    } else if (debugTimer) {
+      clearInterval(debugTimer);
+      debugTimer = null;
+    }
   }
 
   function maybeAutoOpenDebug() {
@@ -678,7 +705,8 @@
     debug: {
       version: DEBUG_VERSION,
       getState: debugGetState,
-      previewFinalCompare: debugPreviewFinalCompare
+      previewFinalCompare: debugPreviewFinalCompare,
+      simulateFullRun: debugSimulateFullRun
     }
   };
 })();
