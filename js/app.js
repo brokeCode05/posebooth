@@ -23,7 +23,9 @@
     poseMode: null, //     'random' | 'free'
     layout: null, //       'vertical' | 'horizontal' | 'grid'
     shootingMode: null, //  'auto' | 'manual'
-    photos: [] //          captured frames, always exactly 4 at the end (Phase 2)
+    photos: [], //         captured frames, always exactly 4 at the end (Phase 2)
+    poseSequence: [], //   shuffled pose paths for this session (Phase 3)
+    currentPoseIndex: 0 // position in poseSequence for the next photo
   };
 
   /* ── Definitions ────────────────────────────────────────────────────── */
@@ -284,8 +286,17 @@
         poseMode: state.poseMode,
         layout: state.layout,
         shootingMode: state.shootingMode,
-        photos: state.photos.slice()
+        photos: state.photos.slice(),
+        poseSequence: state.poseSequence.slice(),
+        currentPoseIndex: state.currentPoseIndex
       };
+    },
+    setPoseSequence: function (paths) {
+      state.poseSequence = (paths || []).slice();
+      state.currentPoseIndex = 0;
+    },
+    setPoseIndex: function (index) {
+      state.currentPoseIndex = index;
     },
     addPhoto: function (dataUrl) {
       // The booth takes exactly 4 photos — never more.

@@ -1171,6 +1171,56 @@ a {
   }
 }
 
+/* Pose guide (Phase 3) — the illustration IS the instruction */
+.pose-guide {
+  display: flex;
+  justify-content: center;
+}
+
+.pose-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 150px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.pose-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+}
+
+/* Quick, quiet swap when moving between poses */
+#pose-img.swap {
+  animation: pose-swap 0.22s var(--ease);
+}
+
+@keyframes pose-swap {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pose-free {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--ink-faint);
+}
+
 /* Progress ticks — one per photo, exactly four */
 .shoot-progress {
   display: flex;
@@ -1358,6 +1408,11 @@ a {
 
   .done-thumbs[data-layout="grid"] {
     width: 210px;
+  }
+
+  .pose-frame {
+    width: 118px;
+    height: 118px;
   }
 
   .capture-ring {

@@ -8,6 +8,8 @@ A playful, modern digital photobooth. Built by hand with HTML, CSS and JavaScrip
 
 **Phase 2 — Camera + shooting system (done):** the READY screen launches a real camera session. Live webcam preview, Manual (shutter) or Auto (3·2·1 countdown) shooting, exactly **4 photos** captured to canvas and held in session state, a flash on each capture, camera-error recovery screens, and a "4 PHOTOS CAPTURED" completion view.
 
+**Phase 3 — Visual pose system (done):** in **Random** mode, one of the four supplied pose illustrations is shown below the camera before each shot — all four poses used exactly once, in a shuffled per-session order, pulled from the folder matching the participant count (`poses/1per/` for 1 person, `poses/2per/` for 2 people). **Free** mode loads nothing and shows "Your pose, your rules." Poses are a visual guide only and never appear in the captured photo.
+
 ## Files
 
 ```
@@ -35,6 +37,11 @@ Posebooth.getConfig()  // → the four Phase 1 selections
 ```
 
 Photos are pushed with `Posebooth.addPhoto(dataUrl)` and capped at **exactly 4**.
+
+## Pose notes
+
+- Random sessions shuffle `[p1, p2, p3, p4]` (Fisher–Yates) once at start; the order stays fixed for the session.
+- The pose image advances after each capture; Free mode never requests a pose asset.
 
 ## Camera notes
 

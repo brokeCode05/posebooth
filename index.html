@@ -384,7 +384,7 @@
               </svg>
               Back
             </button>
-            <span class="shoot-count" id="shoot-count" aria-live="polite">1 / 4</span>
+            <span class="shoot-count" id="shoot-count" aria-live="polite">PHOTO 1 / 4</span>
           </div>
 
           <div class="shoot-stage" id="shoot-stage">
@@ -406,6 +406,14 @@
                 <button class="btn btn-primary btn-sm" id="shoot-retry" type="button">Try again</button>
                 <button class="btn btn-ghost btn-sm" id="shoot-back-setup" type="button">Back to setup</button>
               </div>
+            </div>
+          </div>
+
+          <!-- Pose guide (Phase 3) -->
+          <div class="pose-guide" id="pose-guide" hidden>
+            <div class="pose-frame">
+              <img id="pose-img" alt="Pose to copy" hidden />
+              <span class="pose-free" id="pose-free">Your pose, your rules.</span>
             </div>
           </div>
 
