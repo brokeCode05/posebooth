@@ -1481,138 +1481,121 @@ a {
   color: #fff;
 }
 
-/* The pause after each capture — pose guide beside your photo */
-.shoot-compare {
+/* The final comparison — two complete layouts side by side */
+.done-compare {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 26px;
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+.compare-side {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 8px 0 4px;
-  animation: compare-in 0.28s var(--ease);
+  gap: 8px;
 }
 
-@keyframes compare-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+.compare-side-title {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 
-.compare-pair {
+.compare-layout {
   display: flex;
-  justify-content: center;
-  gap: 14px;
-  width: 100%;
-  max-width: 460px;
+  gap: 6px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
 }
 
 .compare-cell {
-  flex: 1;
-  min-width: 0;
-  display: flex;
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.compare-layout img {
+  display: block;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface-2);
+  aspect-ratio: 4 / 3;
+}
+
+/* The pose illustrations are shown whole — never cropped */
+.compare-layout-pose img {
+  object-fit: contain;
+}
+
+/* Subtle 1–4 chip on each cell so the two sides scan in step */
+.compare-n {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: rgba(26, 25, 23, 0.72);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 9px;
+  line-height: 15px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Vertical — a column of four on each side */
+.compare-layout[data-layout="vertical"] {
   flex-direction: column;
-  gap: 6px;
   align-items: center;
 }
 
-.compare-cell img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: var(--surface-2);
-  display: block;
+.compare-layout[data-layout="vertical"] img {
+  width: 104px;
 }
 
-/* The illustration is shown whole — never cropped */
-#compare-pose {
-  object-fit: contain;
-  padding: 6px;
+/* Horizontal — a row of four on each side */
+.compare-layout[data-layout="horizontal"] img {
+  width: 60px;
 }
 
-.compare-cell figcaption {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-.btn-compare-next {
-  min-width: 150px;
-}
-
-/* Final review — all four pose ↔ photo pairs */
-.done-compare {
+/* 2 × 2 grid on each side */
+.compare-layout[data-layout="grid"] {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  width: 190px;
+}
+
+.compare-layout[data-layout="grid"] .compare-cell {
   width: 100%;
-  max-width: 460px;
-  margin-bottom: 20px;
-}
-
-.done-pair {
-  display: flex;
-  gap: 8px;
-  padding: 8px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-
-.done-cell {
-  flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
 }
 
-.done-cell img {
+.compare-layout[data-layout="grid"] img {
   width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: var(--surface-2);
-  display: block;
 }
 
-.done-cell-pose img {
-  object-fit: contain;
-  padding: 4px;
-}
-
-.done-cell figcaption {
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-/* Responsive — stack the comparison and review on narrow screens */
+/* Responsive — stack the two sides on narrow screens */
 @media (max-width: 520px) {
   .compare-option {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .compare-pair {
-    flex-direction: column;
-    max-width: 320px;
-  }
-
   .done-compare {
-    grid-template-columns: 1fr;
-    max-width: 320px;
+    flex-direction: column;
+    gap: 20px;
   }
 }
 

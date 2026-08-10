@@ -10,7 +10,7 @@ A playful, modern digital photobooth. Built by hand with HTML, CSS and JavaScrip
 
 **Phase 3 — Visual pose system (done):** in **Random** mode, one of the four supplied pose illustrations is shown below the camera before each shot — all four poses used exactly once, in a shuffled per-session order, pulled from the folder matching the participant count (`poses/1per/` for 1 person, `poses/2per/` for 2 people). **Free** mode loads nothing and shows "Your pose, your rules." Poses are a visual guide only and never appear in the captured photo.
 
-**Phase 3.5 — Compare My Poses (done):** when **Random** poses are on, a friendly **On/Off** option (default On) lets the user review each shot: after every capture the pose illustration is shown beside the photo just taken, and nothing advances until the user presses **Next pose** (Auto's countdown stays paused). After the 4th photo, a final review pairs all four poses with their photos before **Continue to Customization**. Off (or Free mode) keeps the plain flow and the pose-free completion review. Poses are stored separately from photos (`poseMatches[]`) and are never baked into a captured image or the eventual strip.
+**Phase 3.5 — Compare My Poses (done):** when **Random** poses are on, a friendly **On/Off** option (default On) adds one final "how did I do?" moment. Shooting stays continuous — all four photos are captured back-to-back with no interruptions. After the 4th photo, a single comparison shows the complete pose guide beside the complete set of photos, both arranged in the Phase 1 layout choice (vertical, horizontal, or 2×2). Off (or Free mode) keeps the plain pose-free review. Poses are stored separately from photos (`poseMatches[]`) and are never baked into a captured image or the eventual strip.
 
 ## Files
 
@@ -46,7 +46,7 @@ Photos are pushed with `Posebooth.addPhoto(dataUrl, poseGuide?)` and capped at *
 
 - Random sessions shuffle `[p1, p2, p3, p4]` (Fisher–Yates) once at start; the order stays fixed for the session.
 - The pose image advances after each capture; Free mode never requests a pose asset.
-- **Compare My Poses** (Random only, default On) pauses after each capture to show the pose beside the photo, then waits for **Next pose**. Poses and photos are kept as separate data — the illustration is UI only.
+- **Compare My Poses** (Random only, default On) shows ONE final comparison after all four photos: the pose guide and your photos side by side, each laid out in the Phase 1 layout choice. Shooting is never interrupted. Poses and photos are kept as separate data — the illustration is UI only.
 
 ## Camera notes
 

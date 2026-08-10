@@ -433,23 +433,6 @@
             </div>
           </div>
 
-          <!-- Compare My Poses (Phase 3.5): pose guide ↔ your photo -->
-          <div class="shoot-compare" id="shoot-compare" hidden>
-            <div class="compare-pair">
-              <figure class="compare-cell">
-                <img id="compare-pose" alt="The pose you were asked to copy" />
-                <figcaption>The pose</figcaption>
-              </figure>
-              <figure class="compare-cell">
-                <img id="compare-photo" alt="Your captured photo" />
-                <figcaption>Your photo</figcaption>
-              </figure>
-            </div>
-            <button class="btn btn-primary btn-compare-next" id="btn-compare-next" type="button">
-              Next pose
-            </button>
-          </div>
-
           <!-- Progress ticks: exactly four slots -->
           <div class="shoot-progress" id="shoot-progress" aria-label="Photos captured: 0 of 4">
             <i></i><i></i><i></i><i></i>
@@ -466,9 +449,20 @@
           <!-- Completion (exactly 4 photos captured) -->
           <div class="shoot-done" id="shoot-done" hidden>
             <h2 class="done-title">4 Photos Captured</h2>
-            <p class="done-sub">Your four photos are captured — next up, customization.</p>
+            <p class="done-sub" id="done-sub">Your four photos are captured — next up, customization.</p>
             <div class="done-thumbs" id="done-thumbs" data-layout="horizontal"></div>
-            <div class="done-compare" id="done-compare" hidden></div>
+
+            <!-- Compare My Poses (Phase 3.5): two complete layouts side by side -->
+            <div class="done-compare" id="done-compare" hidden>
+              <div class="compare-side">
+                <p class="compare-side-title">Pose guide</p>
+                <div class="compare-layout compare-layout-pose" id="done-pose-layout" data-layout="vertical"></div>
+              </div>
+              <div class="compare-side">
+                <p class="compare-side-title">Your photos</p>
+                <div class="compare-layout" id="done-photo-layout" data-layout="vertical"></div>
+              </div>
+            </div>
             <div class="receipt">
               <div class="receipt-head">
                 <span class="receipt-brand">Session</span>
