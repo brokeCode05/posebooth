@@ -1,0 +1,373 @@
+/* ==========================================================================
+   Posebooth — Phase 2: Camera + shooting system.
+   Vanilla JavaScript. No frameworks.
+
+   The user takes EXACTLY 4 photos — never 3, never 5.
+   Photos stay local to the browser session (in-memory data URLs).
+
+   Reads Phase 1 selections via Posebooth.getConfig() and stores captured
+   frames through Posebooth.addPhoto(). All camera streams are stopped when
+   the shooting session ends, is cancelled, or the page is hidden/closed.
+   ========================================================================== */
+
+(function () {
+  'use strict';
+
+  var PHOTO_LIMIT = 4; // the rule: exactly four photos.
+  var COUNTDOWN_FROM = 3; // auto mode default countdown.
+  var COUNTDOWN_TICK_MS = 1000;
+  var PAUSE_AFTER_CAPTURE_MS = 450;
+
+  var session = {
+    stream: null,
+    mode: 'manual', // 'auto' | 'manual' — set from Phase 1 state
+    countdownTimer: null,
+    capturing: false,
+    active: false
+  };
+
+  var els = null;
+
+  /* ── DOM ────────────────────────────────────────────────────────────── */
+  function cacheEls() {
+    els = {
+      booth: document.getElementById('booth'),
+      shootView: document.getElementById('shoot-view'),
+      video: document.getElementById('shoot-video'),
+      count: document.getElementById('shoot-count'),
+      countdown: document.getElementById('shoot-countdown'),
+      progress: document.getElementById('shoot-progress'),
+      capture: document.getElementById('btn-capture'),
+      hint: document.getElementById('shoot-hint'),
+      cancel: document.getElementById('shoot-cancel'),
+      starting: document.getElementById('shoot-starting'),
+      error: document.getElementById('shoot-error'),
+      errorTitle: document.getElementById('shoot-error-title'),
+      errorMsg: document.getElementById('shoot-error-msg'),
+      retry: document.getElementById('shoot-retry'),
+      backSetup: document.getElementById('shoot-back-setup'),
+      done: document.getElementById('shoot-done'),
+      doneThumbs: document.getElementById('done-thumbs'),
+      doneRestart: document.getElementById('btn-done-restart'),
+      doneBtn: document.getElementById('btn-done'),
+      flash: document.getElementById('flash')
+    };
+  }
+
+  /* ── Public entry point (wired from the Ready screen) ───────────────── */
+  function start() {
+    if (!window.Posebooth) return;
+    if (!els) cacheEls();
+    if (session.active) return; // already shooting
+
+    session.mode = Posebooth.getConfig().shootingMode === 'auto' ? 'auto' : 'manual';
+    session.active = true;
+
+    Posebooth.clearPhotos(); // fresh session: exactly 4 new photos
+    resetView();
+    enterShooting();
+    stopStream(); // safety: never inherit a stale stream
+    requestCamera();
+  }
+
+  /* ── Camera access ──────────────────────────────────────────────────── */
+  function requestCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showError(
+        'Camera not supported',
+        'This browser does not support camera access. Try a recent version of Chrome, Edge, Firefox or Safari.',
+        false
+      );
+      return;
+    }
+    navigator.mediaDevices
+      .getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      })
+      .then(onStream)
+      .catch(onError);
+  }
+
+  function onStream(stream) {
+    session.stream = stream;
+    els.video.srcObject = stream;
+    els.video.play().catch(function () {
+      /* muted + playsinline autoplay is generally allowed; ignore */
+    });
+    hideOverlay(els.starting);
+    hideOverlay(els.error);
+    updatePhotoUI();
+    setupModeUI();
+
+    if (session.mode === 'auto') {
+      scheduleCountdown();
+    }
+  }
+
+  function retryCamera() {
+    hideOverlay(els.error);
+    showOverlay(els.starting);
+    stopStream();
+    requestCamera();
+  }
+
+  /* ── Error handling — never leave a blank screen ────────────────────── */
+  function onError(err) {
+    var title;
+    var msg;
+    var name = err && err.name;
+
+    if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+      title = 'Camera permission denied';
+      msg =
+        'Posebooth needs your camera to shoot. Allow camera access in the browser prompt or in the site’s camera settings, then try again.';
+    } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError' || name === 'OverconstrainedError') {
+      title = 'No camera found';
+      msg = 'No camera was detected on this device. Connect one or check your device settings, then try again.';
+    } else if (name === 'NotReadableError' || name === 'TrackStartError') {
+      title = 'Camera is busy';
+      msg = 'Your camera appears to be in use by another application. Close it, then try again.';
+    } else if (name === 'AbortError') {
+      title = 'Camera access interrupted';
+      msg = 'The camera request was interrupted. Please try again.';
+    } else {
+      title = 'Camera unavailable';
+      msg = 'Something went wrong while starting the camera. Please try again.';
+    }
+
+    hideOverlay(els.starting);
+    showError(title, msg);
+  }
+
+  /* ── Modes ──────────────────────────────────────────────────────────── */
+  function setupModeUI() {
+    if (session.mode === 'manual') {
+      els.capture.hidden = false;
+      els.hint.textContent = 'Press the shutter when you’re ready.';
+    } else {
+      els.capture.hidden = true;
+      els.hint.textContent = 'Auto — the booth counts you down.';
+    }
+    els.hint.hidden = false;
+  }
+
+  function scheduleCountdown() {
+    var n = COUNTDOWN_FROM;
+    showCountdown(n);
+    session.countdownTimer = setInterval(function () {
+      n -= 1;
+      if (n <= 0) {
+        clearInterval(session.countdownTimer);
+        session.countdownTimer = null;
+        hideCountdown();
+        capture();
+      } else {
+        showCountdown(n);
+      }
+    }, COUNTDOWN_TICK_MS);
+  }
+
+  function showCountdown(n) {
+    els.countdown.textContent = n;
+    els.countdown.hidden = false;
+    els.countdown.classList.remove('tick');
+    void els.countdown.offsetWidth; // restart the tick animation
+    els.countdown.classList.add('tick');
+  }
+
+  function hideCountdown() {
+    els.countdown.hidden = true;
+  }
+
+  /* ── Capture ────────────────────────────────────────────────────────── */
+  function capture() {
+    if (session.capturing || !session.active) return;
+    var video = els.video;
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      // Camera frame not ready yet — back off instead of freezing.
+      backOffCapture();
+      return;
+    }
+
+    session.capturing = true;
+    els.capture.disabled = true;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    var ctx = canvas.getContext('2d');
+    if (!ctx) {
+      backOffCapture();
+      return;
+    }
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    var taken = Posebooth.addPhoto(dataUrl);
+    flashOnce();
+    updatePhotoUI();
+    session.capturing = false;
+
+    if (taken >= PHOTO_LIMIT) {
+      finish();
+      return;
+    }
+
+    if (session.mode === 'auto') {
+      setTimeout(function () {
+        if (session.active) scheduleCountdown();
+      }, PAUSE_AFTER_CAPTURE_MS);
+    } else {
+      els.capture.disabled = false;
+    }
+  }
+
+  function flashOnce() {
+    els.flash.classList.remove('go');
+    void els.flash.offsetWidth;
+    els.flash.classList.add('go');
+    setTimeout(function () {
+      els.flash.classList.remove('go');
+    }, 520);
+  }
+
+  /* ── UI helpers ─────────────────────────────────────────────────────── */
+  function updatePhotoUI() {
+    var taken = Posebooth.getSession().photos.length;
+    var next = Math.min(taken + 1, PHOTO_LIMIT);
+    els.count.textContent = next + ' / ' + PHOTO_LIMIT;
+
+    var ticks = els.progress.children;
+    for (var i = 0; i < ticks.length; i++) {
+      ticks[i].classList.toggle('is-filled', i < taken);
+    }
+    els.progress.setAttribute('aria-label', 'Photos captured: ' + taken + ' of ' + PHOTO_LIMIT);
+  }
+
+  function showOverlay(el) {
+    el.hidden = false;
+  }
+
+  function hideOverlay(el) {
+    el.hidden = true;
+  }
+
+  function showError(title, msg, canRetry) {
+    els.errorTitle.textContent = title;
+    els.errorMsg.textContent = msg;
+    // "Try again" only makes sense when a retry could actually succeed.
+    els.retry.hidden = canRetry === false;
+    els.error.hidden = false;
+  }
+
+  // Shared "could not grab this frame" path — never freeze or over-capture.
+  function backOffCapture() {
+    session.capturing = false;
+    if (session.mode === 'auto' && session.active) {
+      scheduleCountdown();
+    }
+  }
+
+  function resetView() {
+    hideOverlay(els.starting);
+    hideOverlay(els.error);
+    hideCountdown();
+    els.done.hidden = true;
+    els.hint.hidden = true;
+    els.capture.hidden = true;
+    els.capture.disabled = false;
+    els.doneThumbs.innerHTML = '';
+    els.count.textContent = '1 / ' + PHOTO_LIMIT;
+    var ticks = els.progress.children;
+    for (var i = 0; i < ticks.length; i++) {
+      ticks[i].classList.remove('is-filled');
+    }
+  }
+
+  function enterShooting() {
+    els.booth.classList.add('is-shooting');
+    els.shootView.hidden = false;
+  }
+
+  function exitShooting() {
+    session.active = false;
+    clearInterval(session.countdownTimer);
+    session.countdownTimer = null;
+    stopStream();
+    els.booth.classList.remove('is-shooting');
+    els.shootView.hidden = true;
+    resetView();
+  }
+
+  /* ── Completion (exactly 4 photos) ──────────────────────────────────── */
+  function finish() {
+    stopStream();
+    hideCountdown();
+    els.capture.hidden = true;
+    els.hint.hidden = true;
+
+    var photos = Posebooth.getSession().photos;
+    photos.forEach(function (src) {
+      var img = document.createElement('img');
+      img.src = src;
+      img.alt = 'Captured photo';
+      els.doneThumbs.appendChild(img);
+    });
+
+    Posebooth.refreshSummaries(); // fill the session receipt
+    els.done.hidden = false;
+  }
+
+  /* ── Cleanup ────────────────────────────────────────────────────────── */
+  function stopStream() {
+    if (session.stream) {
+      session.stream.getTracks().forEach(function (track) {
+        track.stop();
+      });
+      session.stream = null;
+    }
+    if (els && els.video) {
+      els.video.srcObject = null;
+    }
+  }
+
+  function cancel() {
+    exitShooting();
+    if (window.Posebooth) Posebooth.navigate('ready');
+  }
+
+  /* ── Wiring ─────────────────────────────────────────────────────────── */
+  function init() {
+    cacheEls();
+
+    els.capture.addEventListener('click', capture);
+    els.cancel.addEventListener('click', cancel);
+    els.retry.addEventListener('click', retryCamera);
+    els.backSetup.addEventListener('click', cancel);
+    els.doneBtn.addEventListener('click', function () {
+      // Placeholder — Phase 3 implements strip customization.
+    });
+    els.doneRestart.addEventListener('click', function () {
+      if (window.Posebooth) Posebooth.clearPhotos();
+      exitShooting();
+      if (window.Posebooth) Posebooth.navigate('ready');
+    });
+
+    // Never leave a camera running after the page is hidden or closed.
+    window.addEventListener('pagehide', function () {
+      stopStream();
+    });
+  }
+
+  init();
+
+  /* ── Public API ─────────────────────────────────────────────────────── */
+  window.Shooting = {
+    start: start,
+    stop: stopStream,
+    isActive: function () {
+      return session.active;
+    }
+  };
+})();

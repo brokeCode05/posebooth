@@ -1,50 +1,61 @@
-# Posebooth — Phase 1
+# Posebooth
 
-A playful, modern digital photobooth. **Phase 1** ships only the setup flow — no camera, no capture, no strip generation yet.
+A playful, modern digital photobooth. Built by hand with HTML, CSS and JavaScript — no frameworks, no backend.
 
-## Setup flow
+## Phases
 
-```
-START → People → Pose Mode → Layout → Shooting Mode → READY (placeholder)
-```
+**Phase 1 — Setup flow (done):** `START → People → Pose Mode → Layout → Shooting Mode → READY`. All selections are saved into session state.
+
+**Phase 2 — Camera + shooting system (done):** the READY screen launches a real camera session. Live webcam preview, Manual (shutter) or Auto (3·2·1 countdown) shooting, exactly **4 photos** captured to canvas and held in session state, a flash on each capture, camera-error recovery screens, and a "4 PHOTOS CAPTURED" completion view.
 
 ## Files
 
 ```
 posebooth/
-├── index.html   # The whole Phase 1 UI (six step slides, progress, controls)
+├── index.html      # Project page + setup wizard + shooting/completion views
 ├── css/
-│   └── style.css
-└── js/
-    └── app.js   # State, navigation, selection wiring, public API
+│   └── style.css   # Minimal light design system + camera UI
+├── js/
+│   ├── app.js      # Phase 1 state, navigation, public Posebooth API
+│   └── camera.js   # Phase 2: getUserMedia, capture, countdown, cleanup
+└── README.md
 ```
 
 ## State & navigation
 
-- All selections live in a single `state` object in `js/app.js`
-  (`participants`, `poseMode`, `layout`, `shootingMode`).
-- Steps slide horizontally on a flex track (`#steps-track`); the current
-  index is `current`.
-- **Continue** is disabled until the current step's selection is made.
-  **Back** always works. The **Start** screen shows no footer controls.
-- The progress dots and the selections tray above the steps update live.
-- Later phases read the session via:
+- All session data lives in one `state` object in `js/app.js`:
+  `participants`, `poseMode`, `layout`, `shootingMode`, `photos[]`.
+- Setup steps slide on a flex track; Continue is disabled until a step is answered.
+- The shooting view takes over the card (setup chrome is hidden) and hands back to READY on cancel.
+- Later phases read the whole session via:
 
 ```js
-Posebooth.getConfig() // → { participants, poseMode, layout, shootingMode }
+Posebooth.getSession() // → { participants, poseMode, layout, shootingMode, photos }
+Posebooth.getConfig()  // → the four Phase 1 selections
 ```
+
+Photos are pushed with `Posebooth.addPhoto(dataUrl)` and capped at **exactly 4**.
+
+## Camera notes
+
+- Access is requested only when the user presses **Start Shooting**.
+- Manual: the user presses the shutter for every photo. Auto: a fixed 3·2·1 countdown fires each photo automatically.
+- Permission denied, no camera, busy camera, and unsupported-browser cases each show a clear message with **Try again** / **Back to setup** actions.
+- The stream is stopped on completion, cancel, retry, and when the page is hidden/closed.
+- Photos are in-memory data URLs — nothing is uploaded.
 
 ## Run it
 
-Open `index.html` in a browser, or serve the folder:
+Camera access requires a secure context (`https://` or `http://localhost`):
 
 ```bash
-python3 -m http.server 8080   # then visit http://localhost:8080
+cd /home/bryan/Documents/Testing/posebooth
+python3 -m http.server 8080    # then open http://localhost:8080
 ```
 
 ## Planned for later phases
 
-- Webcam (getUserMedia) + capture
 - Visual pose guides (illustrations supplied separately)
 - Random pose selection
 - Photo strip layout rendering + download
+- Filters / effects / customization

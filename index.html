@@ -349,10 +349,9 @@
                       <circle cx="12" cy="12" r="3" />
                     </svg>
                   </span>
-                  Start Shooting
-                </button>
-                <p class="shoot-note" id="shoot-note" hidden>Cameras go live in Phase 2 — this is just a preview.</p>
-              </div>
+                Start Shooting
+              </button>
+            </div>
             </section>
           </div>
         </main>
@@ -374,6 +373,91 @@
             </svg>
           </button>
         </footer>
+
+        <!-- ============ SHOOTING VIEW (Phase 2) ============ -->
+        <section class="shoot-view" id="shoot-view" hidden aria-label="Shooting">
+          <div class="shoot-top">
+            <button class="shoot-cancel" id="shoot-cancel" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M19 12H5" />
+                <path d="M11 6l-6 6 6 6" />
+              </svg>
+              Back
+            </button>
+            <span class="shoot-count" id="shoot-count" aria-live="polite">1 / 4</span>
+          </div>
+
+          <div class="shoot-stage">
+            <video class="shoot-video" id="shoot-video" autoplay playsinline muted></video>
+
+            <!-- Starting state -->
+            <div class="shoot-overlay" id="shoot-starting" hidden>
+              <span class="shoot-starting-label">Starting camera…</span>
+            </div>
+
+            <!-- Auto-mode countdown -->
+            <div class="shoot-countdown" id="shoot-countdown" hidden aria-hidden="true"></div>
+
+            <!-- Camera error + recovery -->
+            <div class="shoot-overlay shoot-error" id="shoot-error" hidden>
+              <p class="shoot-error-title" id="shoot-error-title"></p>
+              <p class="shoot-error-msg" id="shoot-error-msg"></p>
+              <div class="shoot-error-actions">
+                <button class="btn btn-primary btn-sm" id="shoot-retry" type="button">Try again</button>
+                <button class="btn btn-ghost btn-sm" id="shoot-back-setup" type="button">Back to setup</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress ticks: exactly four slots -->
+          <div class="shoot-progress" id="shoot-progress" aria-label="Photos captured: 0 of 4">
+            <i></i><i></i><i></i><i></i>
+          </div>
+
+          <div class="shoot-actions">
+            <button class="btn-capture" id="btn-capture" type="button" hidden>
+              <span class="capture-ring" aria-hidden="true"></span>
+              <span class="capture-label">Take Photo</span>
+            </button>
+            <p class="shoot-hint" id="shoot-hint" hidden></p>
+          </div>
+
+          <!-- Completion (exactly 4 photos captured) -->
+          <div class="shoot-done" id="shoot-done" hidden>
+            <h2 class="done-title">4 Photos Captured</h2>
+            <p class="done-sub">Nice work — here’s your session.</p>
+            <div class="done-thumbs" id="done-thumbs"></div>
+            <div class="receipt">
+              <div class="receipt-head">
+                <span class="receipt-brand">Session</span>
+                <span class="receipt-meta">4 shots · 1 strip</span>
+              </div>
+              <div class="receipt-body">
+                <div class="receipt-row">
+                  <span>People</span>
+                  <strong data-summary="participants">—</strong>
+                </div>
+                <div class="receipt-row">
+                  <span>Pose Mode</span>
+                  <strong data-summary="poseMode">—</strong>
+                </div>
+                <div class="receipt-row">
+                  <span>Layout</span>
+                  <strong data-summary="layout">—</strong>
+                </div>
+                <div class="receipt-row">
+                  <span>Shooting Mode</span>
+                  <strong data-summary="shootingMode">—</strong>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btn-done" type="button">Continue to Customization</button>
+            <button class="btn btn-ghost btn-sm btn-done-ghost" id="btn-done-restart" type="button">
+              Start a new session
+            </button>
+            <p class="done-note">Strip customization arrives in Phase 3.</p>
+          </div>
+        </section>
       </div>
     </main>
 
@@ -384,5 +468,6 @@
     </footer>
 
     <script src="js/app.js"></script>
+    <script src="js/camera.js"></script>
   </body>
 </html>

@@ -844,14 +844,6 @@ a {
   display: inline-flex;
 }
 
-.shoot-note {
-  margin-top: 18px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--ink-faint);
-  animation: note-in 0.3s var(--ease);
-}
-
 /* ── Flash overlay ────────────────────────────────────────────────────── */
 .flash {
   position: fixed;
@@ -916,17 +908,6 @@ a {
   }
   100% {
     opacity: 0;
-  }
-}
-
-@keyframes note-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1026,3 +1007,334 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   Phase 2 — Camera / shooting view
+   ========================================================================== */
+
+/* The hidden attribute must always win over any display rule. */
+[hidden] {
+  display: none !important;
+}
+
+/* While shooting, the setup chrome steps out of the way. */
+.booth.is-shooting .booth-head,
+.booth.is-shooting .progress,
+.booth.is-shooting .summary,
+.booth.is-shooting .steps,
+.booth.is-shooting .controls {
+  display: none;
+}
+
+.shoot-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 22px 24px;
+}
+
+.shoot-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shoot-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.shoot-cancel:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.shoot-count {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+}
+
+/* The viewfinder — the camera is the focus of the screen */
+.shoot-stage {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  aspect-ratio: 4 / 3;
+  margin: 0 auto;
+  background: #171512;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.shoot-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.shoot-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 20px;
+  background: rgba(23, 21, 18, 0.66);
+  color: #fff;
+}
+
+.shoot-starting-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.shoot-error-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.shoot-error-msg {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 38ch;
+}
+
+.shoot-error-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.shoot-error .btn-ghost {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.shoot-error .btn-ghost:hover {
+  color: #fff;
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Auto-mode countdown numeral */
+.shoot-countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 26px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.shoot-countdown.tick {
+  animation: count-tick 0.9s var(--ease);
+}
+
+@keyframes count-tick {
+  from {
+    transform: scale(1.16);
+    opacity: 0.45;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Progress ticks — one per photo, exactly four */
+.shoot-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.shoot-progress i {
+  width: 30px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+  transition: background-color 0.2s;
+}
+
+.shoot-progress i.is-filled {
+  background: var(--accent);
+}
+
+.shoot-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 116px;
+  justify-content: flex-end;
+}
+
+/* Manual capture — a shutter key */
+.btn-capture {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.capture-ring {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 3px var(--accent), 0 6px 18px -8px rgba(201, 53, 59, 0.6);
+  position: relative;
+  transition: transform 0.12s var(--ease), background-color 0.15s;
+}
+
+.capture-ring::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translate(-50%, -50%);
+}
+
+.btn-capture:hover .capture-ring {
+  background: var(--accent-deep);
+  transform: scale(1.04);
+}
+
+.btn-capture:active .capture-ring {
+  transform: scale(0.94);
+}
+
+.btn-capture:disabled .capture-ring {
+  opacity: 0.55;
+  transform: none;
+}
+
+.capture-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.shoot-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+
+/* Completion — 4 photos captured */
+.shoot-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 10px 0 6px;
+}
+
+.done-title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.done-sub {
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin: 8px 0 18px;
+}
+
+.done-thumbs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.done-thumbs img {
+  width: 92px;
+  height: 69px;
+  object-fit: cover;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.shoot-done .receipt {
+  margin-bottom: 20px;
+}
+
+.btn-done-ghost {
+  margin-top: 10px;
+}
+
+.done-note {
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+@media (max-width: 520px) {
+  .shoot-view {
+    padding: 12px 16px 18px;
+  }
+
+  .shoot-stage {
+    max-width: 100%;
+  }
+
+  .shoot-countdown {
+    font-size: 96px;
+  }
+
+  .done-thumbs img {
+    width: 74px;
+    height: 56px;
+  }
+
+  .capture-ring {
+    width: 68px;
+    height: 68px;
+  }
+
+  .shoot-actions {
+    min-height: 104px;
+  }
+}
+

@@ -22,7 +22,8 @@
     participants: null, // '1' | '2'
     poseMode: null, //     'random' | 'free'
     layout: null, //       'vertical' | 'horizontal' | 'grid'
-    shootingMode: null //  'auto' | 'manual'
+    shootingMode: null, //  'auto' | 'manual'
+    photos: [] //          captured frames, always exactly 4 at the end (Phase 2)
   };
 
   /* ── Definitions ────────────────────────────────────────────────────── */
@@ -57,8 +58,6 @@
   var backBtn = document.getElementById('btn-back');
   var nextBtn = document.getElementById('btn-next');
   var shootBtn = document.getElementById('btn-shoot');
-  var shootNote = document.getElementById('shoot-note');
-  var flash = document.getElementById('flash');
 
   // Screen-reader announcements (status = polite live region).
   var live = document.createElement('div');
@@ -220,14 +219,10 @@
   /* ── Placeholder Start Shooting ─────────────────────────────────────── */
   function wireShoot() {
     shootBtn.addEventListener('click', function () {
-      // Re-trigger the flash animation, then reveal the Phase 2 note.
-      flash.classList.remove('go');
-      void flash.offsetWidth;
-      flash.classList.add('go');
-      setTimeout(function () {
-        flash.classList.remove('go');
-      }, 650);
-      shootNote.hidden = false;
+      // Phase 2: hand off to the camera / shooting system.
+      if (window.Shooting) {
+        window.Shooting.start();
+      }
     });
   }
 
@@ -273,8 +268,8 @@
 
   /* ── Public API (consumed by later phases) ──────────────────────────── */
   window.Posebooth = {
-    version: '1.0.0',
-    phase: 1,
+    version: '2.0.0',
+    phase: 2,
     getConfig: function () {
       return {
         participants: state.participants,
@@ -282,6 +277,39 @@
         layout: state.layout,
         shootingMode: state.shootingMode
       };
+    },
+    getSession: function () {
+      return {
+        participants: state.participants,
+        poseMode: state.poseMode,
+        layout: state.layout,
+        shootingMode: state.shootingMode,
+        photos: state.photos.slice()
+      };
+    },
+    addPhoto: function (dataUrl) {
+      // The booth takes exactly 4 photos — never more.
+      if (state.photos.length >= 4) return state.photos.length;
+      state.photos.push(dataUrl);
+      return state.photos.length;
+    },
+    clearPhotos: function () {
+      state.photos.length = 0;
+    },
+    getSummary: function () {
+      return {
+        participants: LABELS.participants[state.participants] || '—',
+        poseMode: LABELS.poseMode[state.poseMode] || '—',
+        layout: LABELS.layout[state.layout] || '—',
+        shootingMode: LABELS.shootingMode[state.shootingMode] || '—'
+      };
+    },
+    refreshSummaries: function () {
+      updateSummary();
+    },
+    navigate: function (stepKey) {
+      var idx = STEP_KEYS.indexOf(stepKey);
+      if (idx !== -1) goTo(idx);
     },
     getStepIndex: function () {
       return current;
