@@ -504,7 +504,17 @@
 
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
-  var DEBUG_VERSION = '3.5.1';
+  var DEBUG_VERSION = '3.5.2';
+
+  // Self-heal: if app.js and camera.js don't match (stale mixed cache),
+  // force a fresh load through a cache-busting URL once.
+  function ensureFreshVersion() {
+    if (window.Posebooth && Posebooth.version === DEBUG_VERSION) return;
+    if (/[?&]v=/.test(window.location.search)) return; // already tried once
+    window.location.replace(
+      window.location.pathname + '?v=' + DEBUG_VERSION + window.location.hash
+    );
+  }
 
   function placeholderPhoto(n) {
     var c = document.createElement('canvas');
@@ -527,6 +537,7 @@
     var s = Posebooth.getSession();
     return {
       version: DEBUG_VERSION,
+      appVersion: Posebooth.version,
       poseMode: cfg.poseMode,
       comparePoses: s.comparePoses,
       layout: cfg.layout,
@@ -592,7 +603,8 @@
     if (!debugPanel) return;
     var s = debugGetState();
     var lines = [
-      'version: ' + s.version,
+      'camera: ' + s.version,
+      'app: ' + s.appVersion + ' (must match)',
       'poseMode: ' + s.poseMode,
       'comparePoses: ' + s.comparePoses,
       'layout: ' + s.layout,
@@ -643,7 +655,7 @@
       stopStream();
     });
 
-    // Debug: press D, click the v3.5.1 footer tag, or load with ?debug=1
+    // Debug: press D, click the version footer tag, or load with ?debug=1
     // to open the diagnostic panel.
     els.footVer.addEventListener('click', toggleDebugPanel);
     window.addEventListener('keydown', function (e) {
@@ -651,6 +663,7 @@
       if (e.key === 'd' || e.key === 'D') toggleDebugPanel();
     });
     maybeAutoOpenDebug();
+    ensureFreshVersion();
   }
 
   init();
