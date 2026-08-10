@@ -68,6 +68,7 @@
       photoLayout: document.getElementById('done-photo-layout'),
       doneRestart: document.getElementById('btn-done-restart'),
       doneBtn: document.getElementById('btn-done'),
+      footVer: document.getElementById('foot-ver'),
       flash: document.getElementById('flash')
     };
   }
@@ -642,7 +643,9 @@
       stopStream();
     });
 
-    // Debug: press D (or load with ?debug=1) to open the diagnostic panel.
+    // Debug: press D, click the v3.5.1 footer tag, or load with ?debug=1
+    // to open the diagnostic panel.
+    els.footVer.addEventListener('click', toggleDebugPanel);
     window.addEventListener('keydown', function (e) {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       if (e.key === 'd' || e.key === 'D') toggleDebugPanel();

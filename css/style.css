@@ -885,11 +885,21 @@ a {
   color: var(--ink);
 }
 
-/* Tiny build tag so anyone can tell which version is running */
+/* Tiny build tag so anyone can tell which version is running.
+   Clicking it (or pressing D) opens the debug panel. */
 .foot-ver {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--ink-faint);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.foot-ver:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
 }
 
 /* ── Utilities ─────────────────────────────────────────────────────────── */
