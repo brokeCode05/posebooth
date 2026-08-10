@@ -505,7 +505,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '3.5.4';
+  var DEBUG_VERSION = '3.5.5';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
@@ -532,6 +532,34 @@
     return c.toDataURL('image/jpeg', 0.85);
   }
 
+  function debugCountLoaded(root) {
+    if (!root) return { loaded: 0, total: 0 };
+    var imgs = root.querySelectorAll('img');
+    var loaded = 0;
+    for (var i = 0; i < imgs.length; i++) {
+      if (imgs[i].naturalWidth > 0) loaded++;
+    }
+    return { loaded: loaded, total: imgs.length };
+  }
+
+  function debugVerdict(cfg, s) {
+    if (s.photos.length < 4) {
+      return 'NOT ENOUGH PHOTOS — camera never completed (got ' + s.photos.length + '/4)';
+    }
+    if (!els.doneCompare.hidden) {
+      var p = debugCountLoaded(els.poseLayout);
+      var ph = debugCountLoaded(els.photoLayout);
+      if (p.loaded + ph.loaded >= 8) return 'COMPARE SHOWING — all 8 images loaded. It works!';
+      return 'COMPARE SHOWING but images NOT loaded (poses ' + p.loaded + '/' + p.total +
+        ', photos ' + ph.loaded + '/' + ph.total + ')';
+    }
+    if (!els.doneThumbs.hidden) {
+      var t = debugCountLoaded(els.doneThumbs);
+      return 'PLAIN REVIEW (no compare) — ' + t.loaded + '/' + t.total + ' photos loaded';
+    }
+    return 'NEITHER review visible — done screen may be empty';
+  }
+
   function debugGetState() {
     if (!els) cacheEls();
     var cfg = Posebooth.getConfig();
@@ -546,7 +574,8 @@
       photos: s.photos.length,
       doneCompareHidden: !!els.doneCompare.hidden,
       poseLayoutCells: els.poseLayout.children.length,
-      photoLayoutCells: els.photoLayout.children.length
+      photoLayoutCells: els.photoLayout.children.length,
+      verdict: debugVerdict(cfg, s)
     };
   }
 
@@ -634,16 +663,14 @@
     if (!debugPanel) return;
     var s = debugGetState();
     var lines = [
+      'VERDICT: ' + s.verdict,
       'camera: ' + s.version,
       'app: ' + s.appVersion + ' (must match)',
       'poseMode: ' + s.poseMode,
       'comparePoses: ' + s.comparePoses,
       'layout: ' + s.layout,
-      'shootingMode: ' + s.shootingMode,
       'photos captured: ' + s.photos,
-      'final compare visible: ' + !s.doneCompareHidden,
-      'pose layout cells: ' + s.poseLayoutCells,
-      'photo layout cells: ' + s.photoLayoutCells
+      'final compare visible: ' + !s.doneCompareHidden
     ];
     debugPanel.querySelector('#debug-body').textContent = lines.join('\n');
   }
