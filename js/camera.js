@@ -535,10 +535,22 @@
   function enterCustomize() {
     var s = Posebooth.getSession();
     if (s.photos.length < PHOTO_LIMIT) return; // safety: exactly 4 photos
-    if (!window.Strip) return;
+    if (!window.Strip) {
+      if (window.console) console.warn('Posebooth: strip.js did not load');
+      return;
+    }
     els.done.hidden = true;
     els.customize.hidden = false;
     Strip.renderPreview(els.stripPreview, Posebooth.getConfig().layout, s.photos);
+    // Move focus into the customize panel (it replaces the done screen).
+    els.customize.focus({ preventScroll: true });
+  }
+
+  // Shared exit: clear the 4 photos and return to the Ready screen.
+  function restartSession() {
+    if (window.Posebooth) Posebooth.clearPhotos();
+    exitShooting();
+    if (window.Posebooth) Posebooth.navigate('ready');
   }
 
   /* ── Cleanup ────────────────────────────────────────────────────────── */
@@ -562,7 +574,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '4.0.0';
+  var DEBUG_VERSION = '4.0.1';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
@@ -770,16 +782,8 @@
     els.customContinue.addEventListener('click', function () {
       // Placeholder — Phase 4B adds colors, styles, filters and download.
     });
-    els.customRestart.addEventListener('click', function () {
-      if (window.Posebooth) Posebooth.clearPhotos();
-      exitShooting();
-      if (window.Posebooth) Posebooth.navigate('ready');
-    });
-    els.doneRestart.addEventListener('click', function () {
-      if (window.Posebooth) Posebooth.clearPhotos();
-      exitShooting();
-      if (window.Posebooth) Posebooth.navigate('ready');
-    });
+    els.customRestart.addEventListener('click', restartSession);
+    els.doneRestart.addEventListener('click', restartSession);
 
     // Never leave a camera running after the page is hidden or closed.
     window.addEventListener('pagehide', function () {

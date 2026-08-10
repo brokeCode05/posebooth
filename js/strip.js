@@ -30,16 +30,16 @@
     var taken = (photos || []).slice(0, PHOTO_LIMIT);
     container.setAttribute('data-layout', layoutKey(layout));
     container.innerHTML = '';
-    taken.forEach(function (src) {
+    taken.forEach(function (src, i) {
       var img = document.createElement('img');
       img.src = src;
-      img.alt = 'Captured photo';
+      img.alt = 'Photo ' + (i + 1) + ' of ' + PHOTO_LIMIT;
       container.appendChild(img);
     });
   }
 
   root.Strip = {
-    version: '4.0.0',
+    version: '4.0.1',
     layoutKey: layoutKey,
     renderPreview: renderPreview
   };

@@ -45,8 +45,8 @@ var photos = ['data:photo1', 'data:photo2', 'data:photo3', 'data:photo4'];
     layout + ': photos 1..4 in order, none duplicated, none missing'
   );
   assert.ok(
-    el.children.every(function (c) { return c.alt === 'Captured photo'; }),
-    layout + ': only photo imgs, no pose guides'
+    el.children.every(function (c) { return /^Photo [1-4] of 4$/.test(c.alt); }),
+    layout + ': numbered photo alts, no pose guides'
   );
 });
 
