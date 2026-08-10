@@ -501,6 +501,119 @@
     if (window.Posebooth) Posebooth.navigate('ready');
   }
 
+  /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
+  var debugPanel = null;
+  var DEBUG_VERSION = '3.5.1';
+
+  function placeholderPhoto(n) {
+    var c = document.createElement('canvas');
+    c.width = 320;
+    c.height = 240;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = n % 2 ? '#e0454b' : '#1a1917';
+    ctx.fillRect(0, 0, 320, 240);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 72px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(n), 160, 120);
+    return c.toDataURL('image/jpeg', 0.85);
+  }
+
+  function debugGetState() {
+    if (!els) cacheEls();
+    var cfg = Posebooth.getConfig();
+    var s = Posebooth.getSession();
+    return {
+      version: DEBUG_VERSION,
+      poseMode: cfg.poseMode,
+      comparePoses: s.comparePoses,
+      layout: cfg.layout,
+      shootingMode: cfg.shootingMode,
+      photos: s.photos.length,
+      doneCompareHidden: !!els.doneCompare.hidden,
+      poseLayoutCells: els.poseLayout.children.length,
+      photoLayoutCells: els.photoLayout.children.length
+    };
+  }
+
+  // Show the final pose/photo comparison with fake photos — no camera needed.
+  function debugPreviewFinalCompare() {
+    if (!els) cacheEls();
+    var cfg = Posebooth.getConfig();
+    var layout = cfg.layout || 'horizontal';
+    var posePaths = POSE_FILES[cfg.participants] || POSE_FILES['1'];
+    var fake = { photos: [], poseMatches: posePaths.slice() };
+    for (var i = 1; i <= 4; i++) fake.photos.push(placeholderPhoto(i));
+
+    session.active = true;
+    els.booth.classList.add('is-shooting');
+    els.shootView.hidden = false;
+    hideCountdown();
+    els.capture.hidden = true;
+    els.hint.hidden = true;
+    els.top.hidden = true;
+    els.stage.hidden = true;
+    els.poseGuide.hidden = true;
+    els.progress.hidden = true;
+    els.actions.hidden = true;
+    els.doneSub.textContent = 'The pose versus the photo — how did you do?';
+    els.doneThumbs.hidden = true;
+    buildFinalCompare(layout, fake);
+    els.doneCompare.hidden = false;
+    els.done.hidden = false;
+    Posebooth.refreshSummaries();
+    if (debugPanel) debugPanel.hidden = true;
+  }
+
+  function buildDebugPanel() {
+    if (debugPanel) return;
+    var p = document.createElement('div');
+    p.id = 'debug-panel';
+    p.hidden = true;
+    p.innerHTML =
+      '<div class="debug-head"><strong>Posebooth debug</strong>' +
+      '<button class="debug-close" type="button" aria-label="Close debug panel">&times;</button></div>' +
+      '<div class="debug-body" id="debug-body"></div>' +
+      '<div class="debug-actions">' +
+      '<button class="btn btn-primary btn-sm" id="debug-preview" type="button">Preview final comparison</button>' +
+      '<button class="btn btn-ghost btn-sm" id="debug-close2" type="button">Close</button>' +
+      '</div>';
+    document.body.appendChild(p);
+    debugPanel = p;
+
+    p.querySelector('.debug-close').addEventListener('click', toggleDebugPanel);
+    p.querySelector('#debug-close2').addEventListener('click', toggleDebugPanel);
+    p.querySelector('#debug-preview').addEventListener('click', debugPreviewFinalCompare);
+  }
+
+  function refreshDebugPanel() {
+    if (!debugPanel) return;
+    var s = debugGetState();
+    var lines = [
+      'version: ' + s.version,
+      'poseMode: ' + s.poseMode,
+      'comparePoses: ' + s.comparePoses,
+      'layout: ' + s.layout,
+      'shootingMode: ' + s.shootingMode,
+      'photos captured: ' + s.photos,
+      'final compare visible: ' + !s.doneCompareHidden,
+      'pose layout cells: ' + s.poseLayoutCells,
+      'photo layout cells: ' + s.photoLayoutCells
+    ];
+    debugPanel.querySelector('#debug-body').textContent = lines.join('\n');
+  }
+
+  function toggleDebugPanel() {
+    buildDebugPanel();
+    debugPanel.hidden = !debugPanel.hidden;
+    if (!debugPanel.hidden) refreshDebugPanel();
+  }
+
+  function maybeAutoOpenDebug() {
+    if (/[?&]debug=1/.test(window.location.search)) toggleDebugPanel();
+  }
+
   /* ── Wiring ─────────────────────────────────────────────────────────── */
   function init() {
     cacheEls();
@@ -528,6 +641,13 @@
     window.addEventListener('pagehide', function () {
       stopStream();
     });
+
+    // Debug: press D (or load with ?debug=1) to open the diagnostic panel.
+    window.addEventListener('keydown', function (e) {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'd' || e.key === 'D') toggleDebugPanel();
+    });
+    maybeAutoOpenDebug();
   }
 
   init();
@@ -538,6 +658,11 @@
     stop: stopStream,
     isActive: function () {
       return session.active;
+    },
+    debug: {
+      version: DEBUG_VERSION,
+      getState: debugGetState,
+      previewFinalCompare: debugPreviewFinalCompare
     }
   };
 })();

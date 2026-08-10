@@ -885,6 +885,13 @@ a {
   color: var(--ink);
 }
 
+/* Tiny build tag so anyone can tell which version is running */
+.foot-ver {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 .sr-only {
   position: absolute;
@@ -1597,5 +1604,64 @@ a {
     flex-direction: column;
     gap: 20px;
   }
+}
+
+/* ==========================================================================
+   Debug panel (hidden — press D or load with ?debug=1)
+   ========================================================================== */
+#debug-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  width: 264px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: 0 18px 44px -22px rgba(26, 25, 23, 0.45);
+  padding: 12px 14px;
+  font-size: 12px;
+  text-align: left;
+}
+
+.debug-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.debug-head strong {
+  font-size: 13px;
+}
+
+.debug-close {
+  font-size: 17px;
+  line-height: 1;
+  color: var(--ink-faint);
+  padding: 2px 6px;
+}
+
+.debug-close:hover {
+  color: var(--ink);
+}
+
+.debug-body {
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.debug-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
