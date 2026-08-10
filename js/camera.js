@@ -73,6 +73,7 @@
       stripPreview: document.getElementById('strip-preview'),
       customContinue: document.getElementById('btn-custom-continue'),
       customRestart: document.getElementById('btn-custom-restart'),
+      colorSwatches: document.getElementById('color-swatches'),
       footVer: document.getElementById('foot-ver'),
       flash: document.getElementById('flash')
     };
@@ -88,6 +89,7 @@
     session.active = true;
 
     Posebooth.clearPhotos(); // fresh session: exactly 4 new photos
+    Posebooth.setStripColor('#ffffff'); // fresh session: white strip
     resetView();
     setupPoses();
     enterShooting();
@@ -542,6 +544,13 @@
     els.done.hidden = true;
     els.customize.hidden = false;
     Strip.renderPreview(els.stripPreview, Posebooth.getConfig().layout, s.photos);
+    // Phase 4B: apply the session strip color and rebuild the swatch picker
+    // so the selection always matches the current state.
+    Strip.setColor(els.stripPreview, s.stripColor);
+    Strip.buildColorSwatches(els.colorSwatches, function (hex) {
+      Posebooth.setStripColor(hex);
+      Strip.setColor(els.stripPreview, hex);
+    }, s.stripColor);
     // Move focus into the customize panel (it replaces the done screen).
     els.customize.focus({ preventScroll: true });
   }
@@ -574,7 +583,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '4.0.1';
+  var DEBUG_VERSION = '4.1.0';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
@@ -642,6 +651,7 @@
       appVersion: Posebooth.version,
       poseMode: cfg.poseMode,
       comparePoses: s.comparePoses,
+      stripColor: s.stripColor,
       layout: cfg.layout,
       shootingMode: cfg.shootingMode,
       photos: s.photos.length,
@@ -741,6 +751,7 @@
       'app: ' + s.appVersion + ' (must match)',
       'poseMode: ' + s.poseMode,
       'comparePoses: ' + s.comparePoses,
+      'stripColor: ' + s.stripColor,
       'layout: ' + s.layout,
       'photos captured: ' + s.photos,
       'final compare visible: ' + !s.doneCompareHidden

@@ -27,7 +27,8 @@
     poseSequence: [], //   shuffled pose paths for this session (Phase 3)
     currentPoseIndex: 0, // position in poseSequence for the next photo
     comparePoses: true, //  Random-mode "Compare my poses" review, default ON (3.5)
-    poseMatches: [] //     pose guide path per captured photo, parallel to photos (3.5)
+    poseMatches: [], //     pose guide path per captured photo, parallel to photos (3.5)
+    stripColor: '#ffffff', //  strip background color, white default (Phase 4B)
   };
 
   /* ── Definitions ────────────────────────────────────────────────────── */
@@ -339,7 +340,7 @@
 
   /* ── Public API (consumed by later phases) ──────────────────────────── */
   window.Posebooth = {
-    version: '4.0.1',
+    version: '4.1.0',
     phase: 3,
     getConfig: function () {
       return {
@@ -359,7 +360,8 @@
         poseSequence: state.poseSequence.slice(),
         currentPoseIndex: state.currentPoseIndex,
         comparePoses: state.comparePoses,
-        poseMatches: state.poseMatches.slice()
+        poseMatches: state.poseMatches.slice(),
+        stripColor: state.stripColor,
       };
     },
     setPoseSequence: function (paths) {
@@ -384,6 +386,9 @@
     },
     setComparePoses: function (on) {
       state.comparePoses = !!on;
+    },
+    setStripColor: function (hex) {
+      state.stripColor = hex || '#ffffff';
     },
     // Debug-only: lets the shooting system force a known-good session for
     // the "Simulate full run" diagnostic. Not used by the real flow.
