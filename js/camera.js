@@ -68,6 +68,7 @@
       photoLayout: document.getElementById('done-photo-layout'),
       doneRestart: document.getElementById('btn-done-restart'),
       doneBtn: document.getElementById('btn-done'),
+      doneCheck: document.getElementById('done-check'),
       footVer: document.getElementById('foot-ver'),
       flash: document.getElementById('flash')
     };
@@ -385,6 +386,28 @@
     els.error.hidden = false;
   }
 
+  // Self-diagnosis line shown on the "4 Photos Captured" screen: reports
+  // which review appeared and whether the images actually loaded.
+  function updateDoneCheck() {
+    if (!els || !els.doneCheck) return;
+    var s = Posebooth.getSession();
+    var msg;
+    if (s.photos.length < 4) {
+      msg = 'check: only ' + s.photos.length + '/4 photos captured';
+    } else if (!els.doneCompare.hidden) {
+      var p = debugCountLoaded(els.poseLayout);
+      var ph = debugCountLoaded(els.photoLayout);
+      msg = 'check: compare on — poses ' + p.loaded + '/4 loaded, photos ' + ph.loaded + '/4 loaded';
+    } else if (!els.doneThumbs.hidden) {
+      var t = debugCountLoaded(els.doneThumbs);
+      msg = 'check: plain review — ' + t.loaded + '/4 photos loaded';
+    } else {
+      msg = 'check: review area is empty';
+    }
+    els.doneCheck.textContent = msg;
+    els.doneCheck.hidden = false;
+  }
+
   // Shared "could not grab this frame" path — never freeze or over-capture.
   function backOffCapture() {
     session.capturing = false;
@@ -405,6 +428,7 @@
     els.doneThumbs.removeAttribute('data-layout');
     els.doneThumbs.hidden = false;
     els.doneSub.textContent = 'Your four photos are captured — next up, customization.';
+    els.doneCheck.hidden = true;
     els.doneCompare.innerHTML = '';
     els.doneCompare.hidden = true;
     els.poseLayout.innerHTML = '';
@@ -482,6 +506,9 @@
 
     Posebooth.refreshSummaries(); // fill the session receipt
     els.done.hidden = false;
+
+    // Wait a beat for the images to load, then report on the screen itself.
+    setTimeout(updateDoneCheck, 600);
   }
 
   /* ── Cleanup ────────────────────────────────────────────────────────── */
@@ -505,7 +532,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '3.5.5';
+  var DEBUG_VERSION = '3.5.6';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.

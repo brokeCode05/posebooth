@@ -1347,6 +1347,14 @@ a {
   margin: 8px 0 18px;
 }
 
+/* Tiny self-diagnosis footnote on the completion screen */
+.done-check {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin: -10px 0 14px;
+}
+
 .done-thumbs {
   display: flex;
   justify-content: center;
