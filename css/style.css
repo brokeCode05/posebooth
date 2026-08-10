@@ -1282,17 +1282,42 @@ a {
 
 .done-thumbs {
   display: flex;
+  justify-content: center;
   gap: 8px;
   margin-bottom: 20px;
 }
 
 .done-thumbs img {
-  width: 92px;
-  height: 69px;
   object-fit: cover;
   border: 1px solid var(--line-strong);
   border-radius: 6px;
   background: var(--surface-2);
+  display: block;
+  aspect-ratio: 4 / 3;
+}
+
+/* The four captured photos mirror the layout chosen in Phase 1. */
+.done-thumbs[data-layout="vertical"] {
+  flex-direction: column;
+  align-items: center;
+}
+
+.done-thumbs[data-layout="vertical"] img {
+  width: 160px;
+}
+
+.done-thumbs[data-layout="horizontal"] img {
+  width: 84px;
+}
+
+.done-thumbs[data-layout="grid"] {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  width: 260px;
+}
+
+.done-thumbs[data-layout="grid"] img {
+  width: 100%;
 }
 
 .shoot-done .receipt {
@@ -1323,9 +1348,16 @@ a {
     font-size: 96px;
   }
 
-  .done-thumbs img {
-    width: 74px;
-    height: 56px;
+  .done-thumbs[data-layout="vertical"] img {
+    width: 130px;
+  }
+
+  .done-thumbs[data-layout="horizontal"] img {
+    width: 68px;
+  }
+
+  .done-thumbs[data-layout="grid"] {
+    width: 210px;
   }
 
   .capture-ring {

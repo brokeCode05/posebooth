@@ -33,10 +33,13 @@
     els = {
       booth: document.getElementById('booth'),
       shootView: document.getElementById('shoot-view'),
+      top: document.getElementById('shoot-top'),
+      stage: document.getElementById('shoot-stage'),
       video: document.getElementById('shoot-video'),
       count: document.getElementById('shoot-count'),
       countdown: document.getElementById('shoot-countdown'),
       progress: document.getElementById('shoot-progress'),
+      actions: document.getElementById('shoot-actions'),
       capture: document.getElementById('btn-capture'),
       hint: document.getElementById('shoot-hint'),
       cancel: document.getElementById('shoot-cancel'),
@@ -278,6 +281,12 @@
     els.capture.hidden = true;
     els.capture.disabled = false;
     els.doneThumbs.innerHTML = '';
+    els.doneThumbs.removeAttribute('data-layout');
+    // Restore the shooting chrome for the next session.
+    els.top.hidden = false;
+    els.stage.hidden = false;
+    els.progress.hidden = false;
+    els.actions.hidden = false;
     els.count.textContent = '1 / ' + PHOTO_LIMIT;
     var ticks = els.progress.children;
     for (var i = 0; i < ticks.length; i++) {
@@ -306,6 +315,17 @@
     hideCountdown();
     els.capture.hidden = true;
     els.hint.hidden = true;
+
+    // The camera work is over — remove the shooting chrome so no empty
+    // camera rectangle is left behind. Hiding these reclaims their space.
+    els.top.hidden = true;
+    els.stage.hidden = true;
+    els.progress.hidden = true;
+    els.actions.hidden = true;
+
+    // Arrange the four captured photos to mirror the Phase 1 layout choice.
+    var layout = Posebooth.getConfig().layout;
+    els.doneThumbs.setAttribute('data-layout', layout || 'horizontal');
 
     var photos = Posebooth.getSession().photos;
     photos.forEach(function (src) {

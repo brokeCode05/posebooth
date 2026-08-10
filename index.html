@@ -376,7 +376,7 @@
 
         <!-- ============ SHOOTING VIEW (Phase 2) ============ -->
         <section class="shoot-view" id="shoot-view" hidden aria-label="Shooting">
-          <div class="shoot-top">
+          <div class="shoot-top" id="shoot-top">
             <button class="shoot-cancel" id="shoot-cancel" type="button">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M19 12H5" />
@@ -387,7 +387,7 @@
             <span class="shoot-count" id="shoot-count" aria-live="polite">1 / 4</span>
           </div>
 
-          <div class="shoot-stage">
+          <div class="shoot-stage" id="shoot-stage">
             <video class="shoot-video" id="shoot-video" autoplay playsinline muted></video>
 
             <!-- Starting state -->
@@ -414,7 +414,7 @@
             <i></i><i></i><i></i><i></i>
           </div>
 
-          <div class="shoot-actions">
+          <div class="shoot-actions" id="shoot-actions">
             <button class="btn-capture" id="btn-capture" type="button" hidden>
               <span class="capture-ring" aria-hidden="true"></span>
               <span class="capture-label">Take Photo</span>
@@ -425,8 +425,8 @@
           <!-- Completion (exactly 4 photos captured) -->
           <div class="shoot-done" id="shoot-done" hidden>
             <h2 class="done-title">4 Photos Captured</h2>
-            <p class="done-sub">Nice work — here’s your session.</p>
-            <div class="done-thumbs" id="done-thumbs"></div>
+            <p class="done-sub">Your four photos are captured — next up, customization.</p>
+            <div class="done-thumbs" id="done-thumbs" data-layout="horizontal"></div>
             <div class="receipt">
               <div class="receipt-head">
                 <span class="receipt-brand">Session</span>
