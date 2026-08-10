@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Posebooth — a personal web project by John Bryan Capellan</title>
+    <meta
+      name="description"
+      content="Posebooth is a personal project by John Bryan Capellan — a playful web photobooth where you take four photos and make one strip. Built by hand with HTML, CSS and JavaScript."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; base-uri 'self'; form-action 'self'"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E0454B'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Arial' font-size='19' font-weight='bold' fill='%23FFFFFF'%3EP%3C/text%3E%3C/svg%3E"
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <!-- Full-screen flash used by the placeholder Start Shooting button -->
+    <div class="flash" id="flash" aria-hidden="true"></div>
+
+    <!-- ============ SITE HEADER ============ -->
+    <header class="site-head">
+      <div class="wrap">
+        <a class="brand" href="https://brokeCode05.github.io/portfolio" rel="noopener">
+          John&nbsp;Bryan&nbsp;Capellan
+        </a>
+        <nav class="site-nav" aria-label="Maker links">
+          <a href="https://brokeCode05.github.io/portfolio/#projects" rel="noopener">Projects</a>
+          <a href="https://github.com/brokeCode05" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page">
+      <!-- ============ HERO ============ -->
+      <section class="hero wrap" aria-label="About this project">
+        <p class="kicker">A project by John Bryan Capellan</p>
+        <h1 class="page-title">Posebooth</h1>
+        <p class="lede">
+          A playful web photobooth — four photos, one strip, all you. Built by hand with HTML,
+          CSS and JavaScript. No frameworks, no backend.
+        </p>
+        <div class="meta">
+          <span>HTML · CSS · JavaScript</span>
+          <span aria-hidden="true">/</span>
+          <span>Phase 1 — Setup</span>
+          <a class="btn btn-ghost btn-sm" href="https://github.com/brokeCode05" target="_blank" rel="noopener">
+            View source on GitHub
+          </a>
+        </div>
+      </section>
+
+      <!-- ============ THE APP ============ -->
+      <div class="booth" id="booth">
+        <!-- App header -->
+        <header class="booth-head">
+          <span class="booth-logo">
+            <span class="logo-mark" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="8.5" />
+                <circle cx="12" cy="12" r="3.2" />
+              </svg>
+            </span>
+            <span class="logo-name">Posebooth</span>
+          </span>
+          <span class="booth-head-tag">4 shots · 1 strip</span>
+        </header>
+
+        <!-- Progress -->
+        <nav class="progress" aria-label="Setup progress">
+          <ol class="progress-list" id="progress-list">
+            <!-- Built by js/app.js from STEP_NAMES -->
+          </ol>
+        </nav>
+
+        <!-- Live selections tray -->
+        <dl class="summary" id="summary" aria-label="Current selections">
+          <div class="sum-chip">
+            <dt>People</dt>
+            <dd data-chip="participants">—</dd>
+          </div>
+          <div class="sum-chip">
+            <dt>Poses</dt>
+            <dd data-chip="poseMode">—</dd>
+          </div>
+          <div class="sum-chip">
+            <dt>Layout</dt>
+            <dd data-chip="layout">—</dd>
+          </div>
+          <div class="sum-chip">
+            <dt>Mode</dt>
+            <dd data-chip="shootingMode">—</dd>
+          </div>
+        </dl>
+
+        <!-- ============ STEPS ============ -->
+        <main class="steps">
+          <div class="steps-track" id="steps-track">
+            <!-- ── START ─────────────────────────────── -->
+            <section class="step" data-step="start" aria-label="Welcome" tabindex="-1">
+              <div class="start-screen">
+                <div class="start-lens" aria-hidden="true">
+                  <span class="start-lens-ring"></span>
+                  <span class="start-lens-core"></span>
+                </div>
+                <h2 class="start-title">Posebooth</h2>
+                <p class="start-tag">Four photos. One strip. All you.</p>
+                <button class="btn btn-sticker btn-start" type="button" data-goto="people">
+                  Start
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14" />
+                    <path d="M13 6l6 6-6 6" />
+                  </svg>
+                </button>
+              </div>
+            </section>
+
+            <!-- ── PEOPLE ────────────────────────────── -->
+            <section class="step" data-step="people" aria-label="Choose participants" tabindex="-1">
+              <p class="step-eyebrow">Frame 01 / 04</p>
+              <h2 class="step-title">Who's in the booth?</h2>
+              <p class="step-sub">Choose how many people are striking a pose.</p>
+
+              <div class="options" data-slot="participants" role="radiogroup" aria-label="Participants">
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="1">
+                  <span class="option-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" fill="currentColor">
+                      <circle cx="24" cy="16" r="8" />
+                      <path d="M8 42c0-8.6 7.2-14 16-14s16 5.4 16 14v2H8z" />
+                    </svg>
+                  </span>
+                  <span class="option-title">1 Person</span>
+                  <span class="option-desc">Solo star of the show</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="2">
+                  <span class="option-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" fill="currentColor">
+                      <circle cx="16.5" cy="15" r="7.5" />
+                      <circle cx="31.5" cy="15" r="7.5" />
+                      <path d="M3 42c0-7.8 6.5-12.5 13.5-12.5S30 34.2 30 42v2H3z" />
+                      <path d="M27 42c0-7.8 6.5-12.5 13.5-12.5S45 34.2 45 42v2H27z" />
+                    </svg>
+                  </span>
+                  <span class="option-title">2 People</span>
+                  <span class="option-desc">A duo — double the fun</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ── POSES ─────────────────────────────── -->
+            <section class="step" data-step="poses" aria-label="Choose pose mode" tabindex="-1">
+              <p class="step-eyebrow">Frame 02 / 04</p>
+              <h2 class="step-title">How should you pose?</h2>
+              <p class="step-sub">Get a pose prompt before every shot, or freestyle it.</p>
+
+              <div class="options" data-slot="poseMode" role="radiogroup" aria-label="Pose mode">
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="random">
+                  <span class="option-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="5" y="5" width="38" height="38" rx="9" />
+                      <circle cx="16" cy="16" r="3.2" fill="currentColor" stroke="none" />
+                      <circle cx="24" cy="24" r="3.2" fill="currentColor" stroke="none" />
+                      <circle cx="32" cy="32" r="3.2" fill="currentColor" stroke="none" />
+                    </svg>
+                  </span>
+                  <span class="option-title">Random Poses</span>
+                  <span class="option-desc">A fresh pose prompt each shot</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="free">
+                  <span class="option-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="24" cy="10" r="4.4" />
+                      <path d="M24 14.5V30" />
+                      <path d="M24 20.5l-9.5-8" />
+                      <path d="M24 20.5l9.5-8" />
+                      <path d="M24 30l-8 10.5" />
+                      <path d="M24 30l8 10.5" />
+                    </svg>
+                  </span>
+                  <span class="option-title">Free Poses</span>
+                  <span class="option-desc">Strike whatever feels right</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ── LAYOUT ────────────────────────────── -->
+            <section class="step" data-step="layout" aria-label="Choose strip layout" tabindex="-1">
+              <p class="step-eyebrow">Frame 03 / 04</p>
+              <h2 class="step-title">How should the strip look?</h2>
+              <p class="step-sub">Your four photos, arranged one of three ways.</p>
+
+              <div class="options options-layout" data-slot="layout" role="radiogroup" aria-label="Strip layout">
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="vertical">
+                  <span class="option-icon option-strip" aria-hidden="true">
+                    <span class="strip strip-vertical"><i>1</i><i>2</i><i>3</i><i>4</i></span>
+                  </span>
+                  <span class="option-title">Vertical</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="horizontal">
+                  <span class="option-icon option-strip" aria-hidden="true">
+                    <span class="strip strip-horizontal"><i>1</i><i>2</i><i>3</i><i>4</i></span>
+                  </span>
+                  <span class="option-title">Horizontal</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="grid">
+                  <span class="option-icon option-strip" aria-hidden="true">
+                    <span class="strip strip-grid"><i>1</i><i>2</i><i>3</i><i>4</i></span>
+                  </span>
+                  <span class="option-title">2 × 2 Grid</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ── SHOOTING MODE ─────────────────────── -->
+            <section class="step" data-step="mode" aria-label="Choose shooting mode" tabindex="-1">
+              <p class="step-eyebrow">Frame 04 / 04</p>
+              <h2 class="step-title">Who's pressing the button?</h2>
+              <p class="step-sub">Let the booth count you down, or fire each shot yourself.</p>
+
+              <div class="options" data-slot="shootingMode" role="radiogroup" aria-label="Shooting mode">
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="auto">
+                  <span class="option-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="8" y="9" width="32" height="26" rx="5" />
+                      <circle cx="24" cy="22" r="7" />
+                      <path d="M18 9l2-4h8l2 4" />
+                      <path d="M24 19v3l2 2" />
+                    </svg>
+                    <span class="icon-badge">3·2·1</span>
+                  </span>
+                  <span class="option-title">Auto</span>
+                  <span class="option-desc">Countdown, then snap — hands-free</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+
+                <button class="option" type="button" role="radio" aria-checked="false" data-value="manual">
+                  <span class="option-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="24" cy="26" r="14" />
+                      <circle cx="24" cy="26" r="6" />
+                      <path d="M24 6v7" />
+                    </svg>
+                    <span class="icon-badge">TAP</span>
+                  </span>
+                  <span class="option-title">Manual</span>
+                  <span class="option-desc">You trigger every shot</span>
+                  <span class="option-check" aria-hidden="true">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 12.5l5 5L20 6.5" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ── READY (Phase 1 placeholder) ───────── -->
+            <section class="step" data-step="ready" aria-label="Ready to shoot" tabindex="-1">
+              <div class="ready-wrap">
+                <h2 class="ready-title">Ready?</h2>
+                <p class="ready-sub">Here's your session. Tweak anything, or hit the shutter.</p>
+
+                <div class="receipt">
+                  <div class="receipt-head">
+                    <span class="receipt-brand">Session</span>
+                    <span class="receipt-meta">4 shots · 1 strip</span>
+                  </div>
+                  <div class="receipt-body">
+                    <div class="receipt-row">
+                      <span>People</span>
+                      <strong data-summary="participants">—</strong>
+                    </div>
+                    <div class="receipt-row">
+                      <span>Pose Mode</span>
+                      <strong data-summary="poseMode">—</strong>
+                    </div>
+                    <div class="receipt-row">
+                      <span>Layout</span>
+                      <strong data-summary="layout">—</strong>
+                    </div>
+                    <div class="receipt-row">
+                      <span>Shooting Mode</span>
+                      <strong data-summary="shootingMode">—</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="btn btn-shoot" id="btn-shoot" type="button">
+                  <span class="shoot-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </span>
+                  Start Shooting
+                </button>
+                <p class="shoot-note" id="shoot-note" hidden>Cameras go live in Phase 2 — this is just a preview.</p>
+              </div>
+            </section>
+          </div>
+        </main>
+
+        <!-- ============ CONTROLS ============ -->
+        <footer class="controls" id="controls">
+          <button class="btn btn-ghost" id="btn-back" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M19 12H5" />
+              <path d="M11 6l-6 6 6 6" />
+            </svg>
+            Back
+          </button>
+          <button class="btn btn-primary" id="btn-next" type="button">
+            Continue
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
+          </button>
+        </footer>
+      </div>
+    </main>
+
+    <!-- ============ SITE FOOTER ============ -->
+    <footer class="site-foot wrap">
+      <span>© 2026 John Bryan Capellan — built by hand, no frameworks.</span>
+      <a href="https://github.com/brokeCode05" target="_blank" rel="noopener">GitHub</a>
+    </footer>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
