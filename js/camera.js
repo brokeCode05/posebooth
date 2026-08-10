@@ -211,6 +211,11 @@
   // never include the poses.
   function buildFinalCompare(layout, s) {
     var layoutKey = layout || 'horizontal';
+    // Re-resolve the containers fresh every time so we never write into a
+    // detached node — if they are ever missing, fail silently instead.
+    els.poseLayout = document.getElementById('done-pose-layout');
+    els.photoLayout = document.getElementById('done-photo-layout');
+    if (!els.poseLayout || !els.photoLayout) return;
     els.poseLayout.setAttribute('data-layout', layoutKey);
     els.photoLayout.setAttribute('data-layout', layoutKey);
     els.poseLayout.innerHTML = '';
@@ -397,7 +402,11 @@
     } else if (!els.doneCompare.hidden) {
       var p = debugCountLoaded(els.poseLayout);
       var ph = debugCountLoaded(els.photoLayout);
-      msg = 'check: compare on — poses ' + p.loaded + '/4 loaded, photos ' + ph.loaded + '/4 loaded';
+      var attached =
+        document.contains(els.poseLayout) && document.contains(els.photoLayout);
+      msg =
+        'check: compare on — poses ' + p.loaded + '/4 loaded, photos ' + ph.loaded +
+        '/4 loaded, attached ' + (attached ? 'yes' : 'NO');
     } else if (!els.doneThumbs.hidden) {
       var t = debugCountLoaded(els.doneThumbs);
       msg = 'check: plain review — ' + t.loaded + '/4 photos loaded';
@@ -429,7 +438,10 @@
     els.doneThumbs.hidden = false;
     els.doneSub.textContent = 'Your four photos are captured — next up, customization.';
     els.doneCheck.hidden = true;
-    els.doneCompare.innerHTML = '';
+    // IMPORTANT: never clear done-compare's inner markup here — that would
+    // detach the #done-pose-layout / #done-photo-layout containers from the
+    // document, and the review would build into invisible orphaned nodes.
+    // Only the cells inside the containers are cleared below.
     els.doneCompare.hidden = true;
     els.poseLayout.innerHTML = '';
     els.photoLayout.innerHTML = '';
@@ -532,7 +544,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '3.5.6';
+  var DEBUG_VERSION = '3.5.7';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
@@ -576,6 +588,10 @@
     if (!els.doneCompare.hidden) {
       var p = debugCountLoaded(els.poseLayout);
       var ph = debugCountLoaded(els.photoLayout);
+      var attached =
+        document.contains(els.poseLayout) && document.contains(els.photoLayout);
+      if (!attached) return 'COMPARE SHOWING but containers DETACHED (poses ' + p.loaded +
+        '/' + p.total + ', photos ' + ph.loaded + '/' + ph.total + ') — rebuild bug';
       if (p.loaded + ph.loaded >= 8) return 'COMPARE SHOWING — all 8 images loaded. It works!';
       return 'COMPARE SHOWING but images NOT loaded (poses ' + p.loaded + '/' + p.total +
         ', photos ' + ph.loaded + '/' + ph.total + ')';
