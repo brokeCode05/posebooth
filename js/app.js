@@ -25,7 +25,9 @@
     shootingMode: null, //  'auto' | 'manual'
     photos: [], //         captured frames, always exactly 4 at the end (Phase 2)
     poseSequence: [], //   shuffled pose paths for this session (Phase 3)
-    currentPoseIndex: 0 // position in poseSequence for the next photo
+    currentPoseIndex: 0, // position in poseSequence for the next photo
+    comparePoses: true, //  Random-mode "Compare my poses" review, default ON (3.5)
+    poseMatches: [] //     pose guide path per captured photo, parallel to photos (3.5)
   };
 
   /* ── Definitions ────────────────────────────────────────────────────── */
@@ -60,6 +62,8 @@
   var backBtn = document.getElementById('btn-back');
   var nextBtn = document.getElementById('btn-next');
   var shootBtn = document.getElementById('btn-shoot');
+  var compareOption = document.getElementById('compare-option');
+  var compareSwitch = document.getElementById('compare-switch');
 
   // Screen-reader announcements (status = polite live region).
   var live = document.createElement('div');
@@ -184,6 +188,7 @@
         syncGroup(group, slot);
         updateControls();
         updateSummary();
+        if (slot === 'poseMode') syncCompareToggle();
         if (focus) btn.focus();
         live.textContent = LABELS[slot][value] + ' selected.';
       }
@@ -215,6 +220,66 @@
           select(buttons[next], true);
         }
       });
+    });
+  }
+
+  /* ── Compare My Poses (Phase 3.5) — Random mode only ────────────────── */
+  function syncCompareToggle() {
+    // The option only exists for Random poses — Free mode has no guide to compare.
+    compareOption.hidden = state.poseMode !== 'random';
+
+    var on = !!state.comparePoses;
+    Array.prototype.forEach.call(
+      compareSwitch.querySelectorAll('.compare-choice'),
+      function (btn) {
+        var val = btn.getAttribute('data-value') === 'true';
+        var selected = val === on;
+        btn.classList.toggle('is-selected', selected);
+        btn.setAttribute('aria-checked', selected ? 'true' : 'false');
+      }
+    );
+  }
+
+  function wireCompareToggle() {
+    var buttons = compareSwitch.querySelectorAll('.compare-choice');
+
+    function pick(on) {
+      if (!!state.comparePoses === on) return;
+      state.comparePoses = on;
+      syncCompareToggle();
+      live.textContent = on
+        ? 'Compare my poses is on — you’ll see the pose beside each photo.'
+        : 'Compare my poses is off.';
+    }
+
+    compareSwitch.addEventListener('click', function (e) {
+      var btn = e.target.closest('.compare-choice');
+      if (!btn) return;
+      pick(btn.getAttribute('data-value') === 'true');
+    });
+
+    // Radiogroup keyboard navigation, matching the option groups.
+    compareSwitch.addEventListener('keydown', function (e) {
+      var active = document.activeElement;
+      var idx = Array.prototype.indexOf.call(buttons, active);
+      if (idx === -1) return;
+
+      var next = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        next = (idx + 1) % buttons.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        next = (idx - 1 + buttons.length) % buttons.length;
+      } else if (e.key === 'Home') {
+        next = 0;
+      } else if (e.key === 'End') {
+        next = buttons.length - 1;
+      }
+
+      if (next !== null) {
+        e.preventDefault();
+        buttons[next].focus();
+        pick(buttons[next].getAttribute('data-value') === 'true');
+      }
     });
   }
 
@@ -255,8 +320,12 @@
   function init() {
     buildProgress();
     wireOptions();
+    wireCompareToggle();
     wireNavigation();
     wireShoot();
+
+    // Show the compare option only if Random poses is already selected.
+    syncCompareToggle();
 
     // Sync any pre-selected state (future phases may seed it).
     Array.prototype.forEach.call(document.querySelectorAll('.options'), function (group) {
@@ -270,8 +339,8 @@
 
   /* ── Public API (consumed by later phases) ──────────────────────────── */
   window.Posebooth = {
-    version: '2.0.0',
-    phase: 2,
+    version: '3.5.0',
+    phase: 3,
     getConfig: function () {
       return {
         participants: state.participants,
@@ -288,7 +357,9 @@
         shootingMode: state.shootingMode,
         photos: state.photos.slice(),
         poseSequence: state.poseSequence.slice(),
-        currentPoseIndex: state.currentPoseIndex
+        currentPoseIndex: state.currentPoseIndex,
+        comparePoses: state.comparePoses,
+        poseMatches: state.poseMatches.slice()
       };
     },
     setPoseSequence: function (paths) {
@@ -298,14 +369,21 @@
     setPoseIndex: function (index) {
       state.currentPoseIndex = index;
     },
-    addPhoto: function (dataUrl) {
+    addPhoto: function (dataUrl, poseGuide) {
       // The booth takes exactly 4 photos — never more.
+      // poseGuide (optional) is the illustration shown for that shot. It is
+      // stored separately from the photo and never baked into the image.
       if (state.photos.length >= 4) return state.photos.length;
       state.photos.push(dataUrl);
+      state.poseMatches.push(poseGuide || null);
       return state.photos.length;
     },
     clearPhotos: function () {
       state.photos.length = 0;
+      state.poseMatches.length = 0;
+    },
+    setComparePoses: function (on) {
+      state.comparePoses = !!on;
     },
     getSummary: function () {
       return {

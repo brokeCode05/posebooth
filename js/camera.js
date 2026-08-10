@@ -30,7 +30,8 @@
     mode: 'manual', // 'auto' | 'manual' — set from Phase 1 state
     countdownTimer: null,
     capturing: false,
-    active: false
+    active: false,
+    currentPosePath: null // pose guide shown for the next capture (Phase 3)
   };
 
   var els = null;
@@ -61,8 +62,13 @@
       backSetup: document.getElementById('shoot-back-setup'),
       done: document.getElementById('shoot-done'),
       doneThumbs: document.getElementById('done-thumbs'),
+      doneCompare: document.getElementById('done-compare'),
       doneRestart: document.getElementById('btn-done-restart'),
       doneBtn: document.getElementById('btn-done'),
+      compare: document.getElementById('shoot-compare'),
+      comparePose: document.getElementById('compare-pose'),
+      comparePhoto: document.getElementById('compare-photo'),
+      compareBtn: document.getElementById('btn-compare-next'),
       flash: document.getElementById('flash')
     };
   }
@@ -157,6 +163,7 @@
   /* ── Pose guide (Phase 3) ──────────────────────────────────────────── */
   function setupPoses() {
     var cfg = Posebooth.getConfig();
+    session.currentPosePath = null;
 
     if (cfg.poseMode === 'random') {
       // Use the folder that matches the Phase 1 participant count and shuffle
@@ -177,7 +184,10 @@
   function showPose(index) {
     var seq = Posebooth.getSession().poseSequence;
     if (!seq.length) return;
+    // The guide container may have been hidden by the compare view.
+    els.poseGuide.hidden = false;
     Posebooth.setPoseIndex(index);
+    session.currentPosePath = seq[index];
     els.poseImg.hidden = false;
     els.poseFree.hidden = true;
     els.poseImg.src = seq[index];
@@ -192,6 +202,93 @@
     if (Posebooth.getConfig().poseMode === 'random' && taken < PHOTO_LIMIT) {
       showPose(taken);
     }
+  }
+
+  /* ── Compare My Poses (Phase 3.5) ──────────────────────────────────── */
+  function shouldCompare() {
+    var cfg = Posebooth.getConfig();
+    return cfg.poseMode === 'random' && !!Posebooth.getSession().comparePoses;
+  }
+
+  // Pause after a capture and show the pose guide next to the photo just
+  // taken. No countdown starts while this is on screen — the user decides
+  // when the next pose begins.
+  function showComparison(index) {
+    var s = Posebooth.getSession();
+    var match = s.poseMatches[index];
+
+    els.comparePose.hidden = !match;
+    if (match) els.comparePose.src = match;
+    els.comparePhoto.src = s.photos[index];
+    els.compareBtn.textContent =
+      index === PHOTO_LIMIT - 1 ? 'See the review' : 'Next pose';
+
+    els.stage.hidden = true;
+    els.poseGuide.hidden = true;
+    els.actions.hidden = true;
+    els.compare.hidden = false;
+    els.compareBtn.focus();
+  }
+
+  function nextPose() {
+    if (!session.active) return;
+    var taken = Posebooth.getSession().photos.length;
+
+    els.compare.hidden = true;
+    els.stage.hidden = false;
+    els.actions.hidden = false;
+    if (document.activeElement === els.compareBtn) els.compareBtn.blur();
+
+    if (taken >= PHOTO_LIMIT) {
+      finish();
+      return;
+    }
+
+    advancePose();
+    if (session.mode === 'auto') {
+      scheduleCountdown();
+    } else {
+      els.capture.disabled = false;
+    }
+  }
+
+  // Final review when Compare My Poses is on: each captured photo sits
+  // beside the pose illustration it was taken from. UI only — the photos
+  // themselves stay clean, and the strip will never include the poses.
+  function buildDoneCompare(s) {
+    els.doneCompare.innerHTML = '';
+    s.photos.forEach(function (src, i) {
+      var pair = document.createElement('div');
+      pair.className = 'done-pair';
+
+      var poseFig = document.createElement('figure');
+      poseFig.className = 'done-cell done-cell-pose';
+      var poseImg = document.createElement('img');
+      if (s.poseMatches[i]) {
+        poseImg.src = s.poseMatches[i];
+      } else {
+        poseImg.hidden = true;
+      }
+      poseImg.alt = 'Pose ' + (i + 1) + ' illustration';
+      var poseCap = document.createElement('figcaption');
+      poseCap.textContent = 'The pose';
+      poseFig.appendChild(poseImg);
+      poseFig.appendChild(poseCap);
+
+      var photoFig = document.createElement('figure');
+      photoFig.className = 'done-cell done-cell-photo';
+      var photoImg = document.createElement('img');
+      photoImg.src = src;
+      photoImg.alt = 'Your photo ' + (i + 1);
+      var photoCap = document.createElement('figcaption');
+      photoCap.textContent = 'Your photo';
+      photoFig.appendChild(photoImg);
+      photoFig.appendChild(photoCap);
+
+      pair.appendChild(poseFig);
+      pair.appendChild(photoFig);
+      els.doneCompare.appendChild(pair);
+    });
   }
 
   function shuffle(arr) {
@@ -269,17 +366,24 @@
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-    var taken = Posebooth.addPhoto(dataUrl);
+    var taken = Posebooth.addPhoto(dataUrl, session.currentPosePath);
     flashOnce();
     updatePhotoUI();
-    advancePose();
     session.capturing = false;
+
+    // Phase 3.5: with Compare My Poses on, pause here so the user can
+    // review the pose beside their photo before the next shot begins.
+    if (shouldCompare()) {
+      showComparison(taken - 1);
+      return;
+    }
 
     if (taken >= PHOTO_LIMIT) {
       finish();
       return;
     }
 
+    advancePose();
     if (session.mode === 'auto') {
       setTimeout(function () {
         if (session.active) scheduleCountdown();
@@ -345,6 +449,13 @@
     els.capture.disabled = false;
     els.doneThumbs.innerHTML = '';
     els.doneThumbs.removeAttribute('data-layout');
+    els.doneThumbs.hidden = false;
+    els.doneCompare.innerHTML = '';
+    els.doneCompare.hidden = true;
+    els.compare.hidden = true;
+    els.comparePose.removeAttribute('src');
+    els.comparePhoto.removeAttribute('src');
+    session.currentPosePath = null;
     // Restore the shooting chrome for the next session.
     els.top.hidden = false;
     els.stage.hidden = false;
@@ -382,6 +493,7 @@
     hideCountdown();
     els.capture.hidden = true;
     els.hint.hidden = true;
+    els.compare.hidden = true;
 
     // The camera work is over — remove the shooting chrome so no empty
     // camera rectangle is left behind. Hiding these reclaims their space.
@@ -391,17 +503,26 @@
     els.progress.hidden = true;
     els.actions.hidden = true;
 
-    // Arrange the four captured photos to mirror the Phase 1 layout choice.
-    var layout = Posebooth.getConfig().layout;
-    els.doneThumbs.setAttribute('data-layout', layout || 'horizontal');
+    var cfg = Posebooth.getConfig();
+    var s = Posebooth.getSession();
 
-    var photos = Posebooth.getSession().photos;
-    photos.forEach(function (src) {
-      var img = document.createElement('img');
-      img.src = src;
-      img.alt = 'Captured photo';
-      els.doneThumbs.appendChild(img);
-    });
+    if (cfg.poseMode === 'random' && s.comparePoses) {
+      // Compare review: each photo paired with the pose it was taken from.
+      els.doneThumbs.hidden = true;
+      buildDoneCompare(s);
+      els.doneCompare.hidden = false;
+    } else {
+      // Plain review: the four photos mirror the Phase 1 layout choice.
+      els.doneCompare.hidden = true;
+      els.doneThumbs.hidden = false;
+      els.doneThumbs.setAttribute('data-layout', cfg.layout || 'horizontal');
+      s.photos.forEach(function (src) {
+        var img = document.createElement('img');
+        img.src = src;
+        img.alt = 'Captured photo';
+        els.doneThumbs.appendChild(img);
+      });
+    }
 
     Posebooth.refreshSummaries(); // fill the session receipt
     els.done.hidden = false;
@@ -434,6 +555,9 @@
     els.poseImg.onerror = function () {
       els.poseImg.hidden = true;
     };
+    els.comparePose.onerror = function () {
+      els.comparePose.hidden = true;
+    };
 
     els.capture.addEventListener('click', capture);
     els.cancel.addEventListener('click', cancel);
@@ -442,6 +566,7 @@
     els.doneBtn.addEventListener('click', function () {
       // Placeholder — Phase 3 implements strip customization.
     });
+    els.compareBtn.addEventListener('click', nextPose);
     els.doneRestart.addEventListener('click', function () {
       if (window.Posebooth) Posebooth.clearPhotos();
       exitShooting();
