@@ -117,7 +117,13 @@
         found = b;
       }
     });
-    if (found) pick(found);
+    if (found) {
+      pick(found);
+    } else if (buttons.length) {
+      // Fallback: if the stored colour isn't in the palette (e.g., from a
+      // future Phase 4C preset), default to the first swatch (white).
+      pick(buttons[0]);
+    }
     return buttons;
   }
 
