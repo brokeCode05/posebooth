@@ -339,7 +339,7 @@
 
   /* ── Public API (consumed by later phases) ──────────────────────────── */
   window.Posebooth = {
-    version: '3.5.3',
+    version: '3.5.4',
     phase: 3,
     getConfig: function () {
       return {
@@ -384,6 +384,18 @@
     },
     setComparePoses: function (on) {
       state.comparePoses = !!on;
+    },
+    // Debug-only: lets the shooting system force a known-good session for
+    // the "Simulate full run" diagnostic. Not used by the real flow.
+    __debug: {
+      forceConfig: function (cfg) {
+        if (!cfg) return;
+        if (cfg.participants) state.participants = cfg.participants;
+        if (cfg.poseMode) state.poseMode = cfg.poseMode;
+        if (cfg.layout) state.layout = cfg.layout;
+        if (cfg.shootingMode) state.shootingMode = cfg.shootingMode;
+        if ('comparePoses' in cfg) state.comparePoses = !!cfg.comparePoses;
+      }
     },
     getSummary: function () {
       return {

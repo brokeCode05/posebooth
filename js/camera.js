@@ -505,7 +505,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '3.5.3';
+  var DEBUG_VERSION = '3.5.4';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
@@ -581,11 +581,21 @@
 
   // Run the REAL completion path with a fake 4-photo session. This is the
   // same finish() the real flow uses, so it reveals whether the compare
-  // branch is actually reached.
+  // branch is actually reached. It forces a Random + Compare ON session so
+  // the result does not depend on what was picked in the setup wizard.
   function debugSimulateFullRun() {
     if (!els) cacheEls();
-    var cfg = Posebooth.getConfig();
-    var posePaths = POSE_FILES[cfg.participants] || POSE_FILES['1'];
+    var cur = Posebooth.getConfig();
+    Posebooth.__debug.forceConfig({
+      participants: cur.participants || '1',
+      poseMode: 'random',
+      layout: cur.layout || 'grid',
+      shootingMode: cur.shootingMode || 'auto',
+      comparePoses: true
+    });
+    var paths = POSE_FILES[Posebooth.getConfig().participants] || POSE_FILES['1'];
+    Posebooth.setPoseSequence(paths.slice());
+    var posePaths = Posebooth.getSession().poseSequence;
     Posebooth.clearPhotos();
     for (var i = 0; i < 4; i++) {
       Posebooth.addPhoto(placeholderPhoto(i + 1), posePaths[i]);
