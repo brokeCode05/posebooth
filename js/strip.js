@@ -323,13 +323,19 @@
   // identity brightness(1) so filter chains stay valid). The original
   // photo data is never modified, so switching back to Original restores
   // the photos exactly.
+  //
+  // Each non-original filter is tuned to be clearly recognisable against
+  // Original while still looking like a real photobooth photo: B&W is a
+  // clean monochrome, Vintage gets a warm cast with muted, softened
+  // contrast, Warm shifts toward golden, Cool shifts toward blue/cyan,
+  // Fade lifts the blacks and washes out the tone.
   var FILTERS = [
     { key: 'original', name: 'Original', css: 'brightness(1)' },
-    { key: 'bw', name: 'Black & White', css: 'grayscale(1) contrast(1.05)' },
-    { key: 'vintage', name: 'Vintage', css: 'sepia(0.4) contrast(0.9) brightness(0.96) saturate(1.1)' },
-    { key: 'warm', name: 'Warm', css: 'sepia(0.18) saturate(1.25) brightness(1.03)' },
-    { key: 'cool', name: 'Cool', css: 'hue-rotate(12deg) saturate(0.9) brightness(1.03)' },
-    { key: 'fade', name: 'Fade', css: 'contrast(0.82) brightness(1.12) saturate(0.7)' }
+    { key: 'bw', name: 'Black & White', css: 'grayscale(1) contrast(1.1) brightness(1.04)' },
+    { key: 'vintage', name: 'Vintage', css: 'sepia(0.5) saturate(0.75) contrast(0.88) brightness(1.05)' },
+    { key: 'warm', name: 'Warm', css: 'sepia(0.28) saturate(1.3) hue-rotate(-10deg) brightness(1.03)' },
+    { key: 'cool', name: 'Cool', css: 'hue-rotate(18deg) saturate(1.05) contrast(1.02) brightness(1.03)' },
+    { key: 'fade', name: 'Fade', css: 'contrast(0.75) brightness(1.18) saturate(0.65)' }
   ];
 
   // Optional photo effects, subtle and exclusive of each other (one filter
@@ -442,7 +448,7 @@
   }
 
   root.Strip = {
-    version: '4.10.1',
+    version: '4.11.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,

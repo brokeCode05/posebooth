@@ -2145,10 +2145,15 @@ a {
   filter: var(--pb-filter, brightness(1)) url(#pb-grain);
 }
 
-/* Soft Glow — a gentle white halo and a slight lift around each photo. */
+/* Soft Glow — a gentle luminous diffusion. The glow lives INSIDE the
+   photo (inset box-shadow + a slight brighten), never outside it: a
+   drop-shadow would render past the <img> bounds onto the strip
+   background, which is exactly the leakage this must avoid. The theme
+   frame, borders and strip color stay untouched. */
 .strip-preview[data-effect="glow"] img {
-  filter: var(--pb-filter, brightness(1)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.45))
-    brightness(1.04);
+  filter: var(--pb-filter, brightness(1)) brightness(1.06) contrast(0.97);
+  box-shadow: inset 0 0 28px rgba(255, 255, 255, 0.32),
+    inset 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 /* Filter/effect pickers — simple pills with a clear active state */

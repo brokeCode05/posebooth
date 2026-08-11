@@ -26,7 +26,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="css/style.css?v=4.10.1" />
+    <link rel="stylesheet" href="css/style.css?v=4.11.0" />
   </head>
 
   <body>
@@ -542,21 +542,29 @@
     <!-- ============ SITE FOOTER ============ -->
     <footer class="site-foot wrap">
       <span>© 2026 John Bryan Capellan — built by hand, no frameworks.</span>
-      <button class="foot-ver" id="foot-ver" type="button" title="Version & debug panel">v4.10.1</button>
+      <button class="foot-ver" id="foot-ver" type="button" title="Version & debug panel">v4.11.0</button>
       <a href="https://github.com/brokeCode05" target="_blank" rel="noopener">GitHub</a>
     </footer>
 
     <!-- Hidden SVG defs for the Film Grain effect (applied to the photos only) -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-      <filter id="pb-grain">
-        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch" result="noise" />
-        <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.4 0" result="grain" />
+      <!-- x/y/width/height pin the filter region to the element bounds
+           (the default -10%/+20% region would render grain OUTSIDE the
+           photo, onto the strip background). color-interpolation-filters
+           keeps the matrix math in sRGB so the result is predictable. -->
+      <filter id="pb-grain" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" stitchTiles="stitch" result="noise" />
+        <!-- Map the noise to fine light/dark specks: RGB swings a little
+             around mid-gray (0.32 * noise + 0.34) so overlay both lifts
+             and darkens, and alpha scales with the noise (0..0.6) so the
+             grain stays subtle and photographic rather than static. -->
+        <feColorMatrix in="noise" type="matrix" values="0.32 0 0 0 0.34  0 0.32 0 0 0.34  0 0 0.32 0 0.34  0 0 0 0.6 0" result="grain" />
         <feBlend in="SourceGraphic" in2="grain" mode="overlay" />
       </filter>
     </svg>
 
-    <script src="js/app.js?v=4.10.1"></script>
-    <script src="js/camera.js?v=4.10.1"></script>
-    <script src="js/strip.js?v=4.10.1"></script>
+    <script src="js/app.js?v=4.11.0"></script>
+    <script src="js/camera.js?v=4.11.0"></script>
+    <script src="js/strip.js?v=4.11.0"></script>
   </body>
 </html>

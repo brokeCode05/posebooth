@@ -256,7 +256,7 @@ Strip.applyTheme(filtered, 'retro');
 Strip.applyPhotoFilter(filtered, 'bw');
 assert.strictEqual(filtered.attrs['data-filter'], 'bw', 'applyPhotoFilter stamps data-filter');
 assert.strictEqual(
-  filtered.style['--pb-filter'], 'grayscale(1) contrast(1.05)',
+  filtered.style['--pb-filter'], 'grayscale(1) contrast(1.1) brightness(1.04)',
   '--pb-filter carries the CSS filter string'
 );
 assert.strictEqual(filtered.attrs['data-theme'], 'retro', 'filter never touches the theme');
@@ -272,9 +272,35 @@ assert.strictEqual(
 Strip.applyPhotoFilter(filtered, 'warm');
 assert.strictEqual(filtered.attrs['data-filter'], 'warm', 'filter switches');
 assert.strictEqual(
-  filtered.style['--pb-filter'], 'sepia(0.18) saturate(1.25) brightness(1.03)',
+  filtered.style['--pb-filter'], 'sepia(0.28) saturate(1.3) hue-rotate(-10deg) brightness(1.03)',
   'new filter replaces the old'
 );
+// Every non-original filter must be clearly recognisable against Original
+// AND against each other — each carries its signature function and no two
+// share the same full CSS string (so the picker options feel distinct).
+var signatures = {
+  bw: 'grayscale(1)',
+  vintage: 'sepia(0.5)',
+  warm: 'hue-rotate(-10deg)',
+  cool: 'hue-rotate(18deg)',
+  fade: 'contrast(0.75)'
+};
+var seen = {};
+Object.keys(signatures).forEach(function (k) {
+  Strip.applyPhotoFilter(filtered, k);
+  assert.strictEqual(filtered.attrs['data-filter'], k, k + ' filter applies');
+  assert.ok(
+    filtered.style['--pb-filter'].indexOf(signatures[k]) !== -1,
+    k + ' filter carries its signature function'
+  );
+  assert.ok(
+    filtered.style['--pb-filter'] !== 'brightness(1)',
+    k + ' filter is visually distinct from Original'
+  );
+  assert.ok(!seen[filtered.style['--pb-filter']], k + ' filter string is unique');
+  seen[filtered.style['--pb-filter']] = true;
+});
+
 Strip.applyPhotoFilter(filtered, 'original');
 assert.strictEqual(filtered.attrs['data-filter'], 'original', 'back to original');
 assert.strictEqual(filtered.style['--pb-filter'], 'brightness(1)', 'original restores the identity filter');
