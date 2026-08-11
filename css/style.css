@@ -2193,3 +2193,31 @@ a {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* ==========================================================================
+   Phase 4E — optional date on the strip (OFF by default)
+   ==========================================================================
+
+/* When the date is enabled, the slim 2×6 column opens a small bottom band
+   (photos 88% wide instead of 100%) so the date pill never overlaps the
+   last photo. The 6×2 and 6×8 layouts already have enough frame room. */
+.strip-preview[data-date="on"][data-layout="vertical"] img {
+  width: 88%;
+}
+
+/* The date itself — a small upright mono pill in the bottom-centre frame
+   margin (the shared .pd.bc position: layout-aware, never rotated). The
+   translucent backing keeps it readable on any strip color. It is UI
+   composition only and is never baked into the captured photos. */
+.pd-date {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 2px;
+  padding: 0.3em 0.55em;
+  white-space: nowrap;
+}

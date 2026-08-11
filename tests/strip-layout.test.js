@@ -343,6 +343,55 @@ pickedEx.length = 0;
 ex.children[1].events.click(); // film grain
 assert.deepStrictEqual(pickedEx, ['grain'], 'onPick receives the effect');
 
+/* ── Optional date (Phase 4E) ────────────────────────────────────────── */
+var dated = new FakeEl('div');
+Strip.renderPreview(dated, 'vertical', photos);
+Strip.applyDate(dated, false);
+assert.strictEqual(dated.attrs['data-date'], 'off', 'date off stamps data-date=off');
+assert.strictEqual(dated.querySelectorAll('.pd-date').length, 0, 'date off renders nothing');
+
+Strip.applyDate(dated, true);
+assert.strictEqual(dated.attrs['data-date'], 'on', 'date on stamps data-date=on');
+var dateEls = dated.querySelectorAll('.pd-date');
+assert.strictEqual(dateEls.length, 1, 'date on injects exactly one date element');
+assert.ok(
+  /^pd pd-date bc$/.test(dateEls[0].className),
+  'date element uses the upright bottom-centre position'
+);
+assert.ok(
+  /^\d{2} [A-Z]{3} '\d{2}$/.test(dateEls[0].textContent),
+  "date text is a readable DD MMM 'YY"
+);
+assert.strictEqual(
+  dated.children.filter(function (c) { return c.tagName === 'img'; }).length,
+  4,
+  'the date never touches the four photos'
+);
+assert.deepStrictEqual(
+  dated.children.filter(function (c) { return c.tagName === 'img'; }).map(function (c) { return c.src; }),
+  photos,
+  'photo order is preserved with the date on'
+);
+
+Strip.applyDate(dated, true);
+assert.strictEqual(dated.querySelectorAll('.pd-date').length, 1, 're-applying on never duplicates the date');
+Strip.applyDate(dated, false);
+assert.strictEqual(dated.querySelectorAll('.pd-date').length, 0, 'date off removes the element');
+
+// Date toggle: 2 options, off default, click + arrow keys work.
+var dt = new FakeEl('div');
+var pickedDate = [];
+Strip.buildDateToggle(dt, function (key) { pickedDate.push(key); }, false);
+assert.strictEqual(dt.children.length, 2, 'date toggle has Off/On');
+assert.strictEqual(dt.children[0].getAttribute('aria-checked'), 'true', 'date defaults to off');
+pickedDate.length = 0;
+dt.children[1].events.click(); // On
+assert.strictEqual(dt.children[1].getAttribute('aria-checked'), 'true', 'On selected after click');
+assert.deepStrictEqual(pickedDate, ['on'], 'onPick receives the date setting');
+var dtOn = new FakeEl('div');
+Strip.buildDateToggle(dtOn, null, true);
+assert.strictEqual(dtOn.children[1].getAttribute('aria-checked'), 'true', 'On preselected when already enabled');
+
 /* ── No-leak static invariants (Phase 4D refinement) ─────────────────────
    The core rule: filters/effects must affect ONLY the photo pixels —
    never the strip background, theme frame, borders, decorations or

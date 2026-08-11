@@ -447,8 +447,54 @@
     return buildFxRow(container, EFFECTS, effectKey(initialKey), 'data-effect', 'Effect', onPick);
   }
 
+  // ── Phase 4E: optional date (OFF by default) ─────────────────────────
+
+  // The date is an optional final-composition element. OFF by default —
+  // nothing renders unless the user enables it. When ON, a small mono
+  // date sits in the bottom-centre frame margin (the shared .pd.bc
+  // position, so it is layout-aware and never rotated). A translucent
+  // pill keeps it readable on any strip color. It is UI composition
+  // only: it is never baked into the captured photos, and the export
+  // photo data stays clean.
+  var DATE_OPTIONS = [
+    { key: 'off', name: 'Off' },
+    { key: 'on', name: 'On' }
+  ];
+
+  function dateText() {
+    var d = new Date();
+    var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    var day = String(d.getDate());
+    if (day.length === 1) day = '0' + day;
+    return day + ' ' + MONTHS[d.getMonth()] + ' \'' + String(d.getFullYear()).slice(-2);
+  }
+
+  // Apply the optional date to the strip: stamps data-date (the CSS uses
+  // it to open a slim bottom band on the 2×6 so the date never overlaps
+  // the last photo) and injects/removes the .pd-date element. Remove
+  // first, so re-applying never duplicates it.
+  function applyDate(container, on) {
+    if (!container) return;
+    container.setAttribute('data-date', on ? 'on' : 'off');
+    if (container.querySelectorAll) {
+      var old = container.querySelectorAll('.pd-date');
+      for (var i = 0; i < old.length; i++) container.removeChild(old[i]);
+    }
+    if (!on) return;
+    var el = document.createElement('span');
+    el.className = 'pd pd-date bc';
+    el.setAttribute('aria-hidden', 'true');
+    el.textContent = dateText();
+    container.appendChild(el);
+  }
+
+  function buildDateToggle(container, onPick, initialOn) {
+    return buildFxRow(container, DATE_OPTIONS, initialOn ? 'on' : 'off', 'data-date', 'Show date', onPick);
+  }
+
   root.Strip = {
-    version: '4.11.0',
+    version: '4.12.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
@@ -468,7 +514,9 @@
     applyPhotoFilter: applyPhotoFilter,
     applyPhotoEffect: applyPhotoEffect,
     buildFilterSwatches: buildFilterSwatches,
-    buildEffectSwatches: buildEffectSwatches
+    buildEffectSwatches: buildEffectSwatches,
+    applyDate: applyDate,
+    buildDateToggle: buildDateToggle
   };
 
   // Allow the layout logic to be smoke-tested in Node.

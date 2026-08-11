@@ -32,6 +32,7 @@
     stripTheme: 'minimal', //  strip decorative theme, minimal default (Phase 4C)
     filter: 'original', //    photo filter, original default (Phase 4D)
     effect: 'none', //        optional photo effect, off default (Phase 4D)
+    showDate: false, //       optional date on the strip, off default (Phase 4E)
   };
 
   /* ── Definitions ────────────────────────────────────────────────────── */
@@ -343,7 +344,7 @@
 
   /* ── Public API (consumed by later phases) ──────────────────────────── */
   window.Posebooth = {
-    version: '4.11.0',
+    version: '4.12.0',
     phase: 3,
     getConfig: function () {
       return {
@@ -368,6 +369,7 @@
         stripTheme: state.stripTheme,
         filter: state.filter,
         effect: state.effect,
+        showDate: state.showDate,
       };
     },
     setPoseSequence: function (paths) {
@@ -404,6 +406,9 @@
     },
     setEffect: function (key) {
       state.effect = key || 'none';
+    },
+    setShowDate: function (on) {
+      state.showDate = !!on;
     },
     // Debug-only: lets the shooting system force a known-good session for
     // the "Simulate full run" diagnostic. Not used by the real flow.

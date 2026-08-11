@@ -77,6 +77,7 @@
       themeSwatches: document.getElementById('theme-swatches'),
       filterSwatches: document.getElementById('filter-swatches'),
       effectSwatches: document.getElementById('effect-swatches'),
+      dateToggle: document.getElementById('date-toggle'),
       footVer: document.getElementById('foot-ver'),
       flash: document.getElementById('flash')
     };
@@ -96,6 +97,7 @@
     Posebooth.setStripTheme('minimal'); // fresh session: minimal theme
     Posebooth.setFilter('original'); //  fresh session: original photos
     Posebooth.setEffect('none'); //      fresh session: no effect
+    Posebooth.setShowDate(false); //     fresh session: date off
     resetView();
     setupPoses();
     enterShooting();
@@ -444,6 +446,7 @@
     els.done.hidden = true;
     els.customize.hidden = true;
     els.stripPreview.innerHTML = '';
+    els.stripPreview.removeAttribute('data-date');
     els.hint.hidden = true;
     els.capture.hidden = true;
     els.capture.disabled = false;
@@ -576,6 +579,13 @@
       Posebooth.setEffect(key);
       Strip.applyPhotoEffect(els.stripPreview, key);
     }, s.effect);
+    // Phase 4E: optional date (OFF by default) — apply the saved setting
+    // and rebuild the toggle to match the current state.
+    Strip.applyDate(els.stripPreview, s.showDate);
+    Strip.buildDateToggle(els.dateToggle, function (key) {
+      Posebooth.setShowDate(key === 'on');
+      Strip.applyDate(els.stripPreview, key === 'on');
+    }, s.showDate);
     // Move focus into the customize panel (it replaces the done screen).
     els.customize.focus({ preventScroll: true });
   }
@@ -608,7 +618,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '4.11.0';
+  var DEBUG_VERSION = '4.12.0';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
