@@ -2132,19 +2132,22 @@ a {
    only. The original photo data is never modified.
    ========================================================================== */
 
+/* The fallback is brightness(1) (a valid identity filter) rather than
+   'none' so a missing --pb-filter can never produce the invalid
+   'none url(#pb-grain)' and silently drop the effect. */
 .strip-preview img {
-  filter: var(--pb-filter, none);
+  filter: var(--pb-filter, brightness(1));
 }
 
 /* Film Grain — the hidden inline #pb-grain SVG filter (see index.html)
    blends a subtle noise over each photo, on top of the photo filter. */
 .strip-preview[data-effect="grain"] img {
-  filter: var(--pb-filter, none) url(#pb-grain);
+  filter: var(--pb-filter, brightness(1)) url(#pb-grain);
 }
 
 /* Soft Glow — a gentle white halo and a slight lift around each photo. */
 .strip-preview[data-effect="glow"] img {
-  filter: var(--pb-filter, none) drop-shadow(0 0 10px rgba(255, 255, 255, 0.45))
+  filter: var(--pb-filter, brightness(1)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.45))
     brightness(1.04);
 }
 
