@@ -39,9 +39,9 @@ var Strip = require('../js/strip.js');
 /* ── Layout rendering (Phase 4A) ─────────────────────────────────────── */
 var photos = ['data:photo1', 'data:photo2', 'data:photo3', 'data:photo4'];
 var RATIOS = {
-  vertical: '1500 / 3600',
-  grid: '3000 / 3600',
-  horizontal: '3600 / 2400'
+  vertical: '1200 / 3600',
+  grid: '3600 / 4800',
+  horizontal: '4800 / 3600'
 };
 
 ['vertical', 'horizontal', 'grid'].forEach(function (layout) {
@@ -68,13 +68,13 @@ assert.strictEqual(capped.children.length, 4, 'caps at 4');
 
 assert.strictEqual(Strip.layoutKey('diagonal'), 'vertical', 'unknown layout -> vertical');
 assert.strictEqual(Strip.layoutKey(undefined), 'vertical', 'missing layout -> vertical');
-assert.strictEqual(Strip.canvasRatio('diagonal'), '1500 / 3600', 'unknown layout -> vertical canvas');
+assert.strictEqual(Strip.canvasRatio('diagonal'), '1200 / 3600', 'unknown layout -> vertical canvas');
 
-// Master canvas map: the standard digital working canvases.
+// Master canvas map: real photobooth print sizes (2×6, 6×8, 8×6 inch).
 assert.deepStrictEqual(Strip.canvas, {
-  vertical: { width: 1500, height: 3600 },
-  grid: { width: 3000, height: 3600 },
-  horizontal: { width: 3600, height: 2400 }
+  vertical: { width: 1200, height: 3600 },
+  grid: { width: 3600, height: 4800 },
+  horizontal: { width: 4800, height: 3600 }
 }, 'master canvas dimensions');
 
 /* ── Strip color (Phase 4B) ──────────────────────────────────────────── */

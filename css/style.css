@@ -1102,6 +1102,8 @@ a {
   height: 100%;
   object-fit: cover;
   display: block;
+  /* IMPORTANT: never mirror this feed (no scaleX(-1)). The preview must
+     match the captured photo and pose guide orientation exactly. */
 }
 
 .shoot-overlay {
@@ -1701,7 +1703,7 @@ a {
 
 /* The strip itself — a master-canvas backing with the four photos and
    intentional breathing room for future themed frame designs. The exact
-   aspect-ratio (vertical 1500×3600, grid 3000×3600, horizontal 3600×2400)
+   aspect-ratio (vertical 1200×3600, grid 3600×4800, horizontal 4800×3600)
    is applied inline by the renderer so the preview always keeps the true
    print proportions; the width is capped below so the preview stays a
    comfortable size on screen and scales down on narrow viewports. */
@@ -1727,30 +1729,30 @@ a {
   background: var(--surface-2);
 }
 
-/* Vertical — 1500×3600 master (5:12). A classic tall column; the photos
-   sit at ~68% of the canvas width with even gaps, and the colour backing
-   fills the full tall canvas around them. */
+/* Vertical — 1200×3600 master (1:3, a 2×6 print). A classic tall column;
+   the photos sit at ~74% of the canvas width with even gaps, and the
+   colour backing fills the full tall canvas around them. */
 .strip-preview[data-layout="vertical"] {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  width: min(300px, 86vw);
-  padding: 4.5% 16%;
+  width: min(280px, 84vw);
+  padding: 4.5% 13%;
 }
 
-/* Horizontal — 3600×2400 master (3:2). A row of four centred vertically,
-   leaving generous upper/lower canvas for future frame bands. */
+/* Horizontal — 4800×3600 master (4:3, an 8×6 print). A row of four
+   centred vertically, leaving upper/lower canvas for future frame bands. */
 .strip-preview[data-layout="horizontal"] {
-  width: min(480px, 94vw);
-  padding: 8% 1.5%;
+  width: min(520px, 94vw);
+  padding: 8% 2%;
 }
 
 .strip-preview[data-layout="horizontal"] img {
   width: 23%;
 }
 
-/* 2 × 2 grid — 3000×3600 master (5:6). The photo block sits toward the
-   top; the extra lower canvas is deliberate frame space. */
+/* 2 × 2 grid — 3600×4800 master (3:4, a 6×8 print). The photo block sits
+   toward the top; the extra lower canvas is deliberate frame space. */
 .strip-preview[data-layout="grid"] {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

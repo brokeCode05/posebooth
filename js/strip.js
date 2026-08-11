@@ -13,15 +13,16 @@
 
   var PHOTO_LIMIT = 4; // the rule: exactly four photos.
 
-  // Master working canvases for the strip, in design pixels. The browser
-  // preview scales these down but always preserves the exact ratio; the
-  // same dimensions will drive the eventual printable/downloadable export.
-  // The extra room around the photos is intentional breathing space for
-  // future themed frame designs (borders, stickers, typography, logos).
+  // Master working canvases for the strip, sized to real photobooth
+  // print proportions (2×6, 6×8, 8×6 inch). The browser preview scales
+  // these down but always preserves the exact ratio; the same dimensions
+  // will drive the eventual printable/downloadable export. The extra room
+  // around the photos is intentional breathing space for future themed
+  // frame designs (borders, stickers, typography, logos).
   var CANVAS = {
-    vertical:   { width: 1500, height: 3600 }, // 5 : 12
-    grid:       { width: 3000, height: 3600 }, // 5 : 6
-    horizontal: { width: 3600, height: 2400 }  // 3 : 2
+    vertical:   { width: 1200, height: 3600 }, // 2×6 print, 1 : 3
+    grid:       { width: 3600, height: 4800 }, // 6×8 print, 3 : 4
+    horizontal: { width: 4800, height: 3600 }  // 8×6 print, 4 : 3
   };
 
   // Normalize the Phase 1 layout value to one of the three strip shapes.
@@ -148,7 +149,7 @@
   }
 
   root.Strip = {
-    version: '4.2.0',
+    version: '4.3.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
