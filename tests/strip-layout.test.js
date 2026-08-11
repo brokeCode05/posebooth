@@ -343,4 +343,40 @@ pickedEx.length = 0;
 ex.children[1].events.click(); // film grain
 assert.deepStrictEqual(pickedEx, ['grain'], 'onPick receives the effect');
 
+/* ── No-leak static invariants (Phase 4D refinement) ─────────────────────
+   The core rule: filters/effects must affect ONLY the photo pixels —
+   never the strip background, theme frame, borders, decorations or
+   margins. These source-level checks lock that in so a future change
+   can't silently re-introduce leakage (e.g. a drop-shadow glow or an
+   unclipped grain region). */
+var fs = require('fs');
+var path = require('path');
+var ROOT = path.join(__dirname, '..');
+var css = fs.readFileSync(path.join(ROOT, 'css', 'style.css'), 'utf8');
+var html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+
+// 1. Soft Glow must never render outside the photo: the rule must NOT use
+//    drop-shadow() (which draws past the img bounds onto the strip
+//    background) and must target the photos only.
+var glowRule = css.match(/\.strip-preview\[data-effect="glow"\] img\s*\{([^}]*)\}/);
+assert.ok(glowRule, 'glow effect rule exists');
+assert.ok(!/drop-shadow/.test(glowRule[1]), 'glow never uses drop-shadow (it would leak outside the photo)');
+assert.ok(/inset/.test(glowRule[1]), 'glow is an inset treatment, clipped to the photo box');
+assert.ok(
+  /var\(--pb-filter, brightness\(1\)\)/.test(css),
+  'photo filter fallback is the brightness(1) identity (never the invalid none)'
+);
+
+// 2. Every effect rule must target .strip-preview img — photos only.
+var effectRules = css.match(/\.strip-preview\[data-effect="[a-z]+"\]\s+img/g) || [];
+assert.ok(effectRules.length >= 2, 'both effect rules target .strip-preview img (photos only)');
+
+// 3. The Film Grain SVG filter must be region-clipped to the element
+//    bounds — the default -10%/+20% region would render grain OUTSIDE the
+//    photo, onto the strip background.
+assert.ok(
+  /<filter id="pb-grain" x="0%" y="0%" width="100%" height="100%"/.test(html),
+  'grain filter is region-clipped to the photo bounds'
+);
+
 console.log('strip layout + color + theme + filter tests passed ✓');
