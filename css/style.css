@@ -2121,3 +2121,67 @@ a {
   width: 4px;
   height: 4px;
 }
+
+/* ==========================================================================
+   Phase 4D — Photo filters & effects
+
+   The filter changes the APPEARANCE of the photos only — the theme frame,
+   borders, decorations and strip background stay untouched. The container
+   carries --pb-filter (set inline by the renderer) plus data-filter and
+   data-effect; the rules below apply the CSS filter to the <img> elements
+   only. The original photo data is never modified.
+   ========================================================================== */
+
+.strip-preview img {
+  filter: var(--pb-filter, none);
+}
+
+/* Film Grain — the hidden inline #pb-grain SVG filter (see index.html)
+   blends a subtle noise over each photo, on top of the photo filter. */
+.strip-preview[data-effect="grain"] img {
+  filter: var(--pb-filter, none) url(#pb-grain);
+}
+
+/* Soft Glow — a gentle white halo and a slight lift around each photo. */
+.strip-preview[data-effect="glow"] img {
+  filter: var(--pb-filter, none) drop-shadow(0 0 10px rgba(255, 255, 255, 0.45))
+    brightness(1.04);
+}
+
+/* Filter/effect pickers — simple pills with a clear active state */
+.fx-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.fx-option {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink-soft);
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.fx-option:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.fx-option.is-selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.fx-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

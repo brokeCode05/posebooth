@@ -11,6 +11,7 @@ var assert = require('assert');
 function FakeEl(tag) {
   this.tagName = tag;
   this.style = {};
+  this.style.setProperty = function (k, v) { this[k] = v; };
   this.attrs = {};
   this._classes = new Set();
   this.children = [];
@@ -240,4 +241,80 @@ var noLayout = new FakeEl('div');
 Strip.buildThemeSwatches(noLayout, null, 'minimal', 'diagonal');
 assert.strictEqual(noLayout.children[0].children[0].attrs['data-layout'], 'vertical', 'unknown layout -> vertical previews');
 
-console.log('strip layout + color + theme tests passed ✓');
+/* ── Photo filters & effects (Phase 4D) ──────────────────────────────── */
+assert.strictEqual(Strip.filters.length, 6, '6 curated filters');
+assert.strictEqual(Strip.filters[0].key, 'original', 'original is the default first filter');
+assert.strictEqual(Strip.effects.length, 3, '3 effect options (off + 2)');
+assert.strictEqual(Strip.effects[0].key, 'none', 'effects default to off');
+
+// applyPhotoFilter changes only the photo appearance — theme, color and the
+// photos themselves stay untouched.
+var filtered = new FakeEl('div');
+Strip.setColor(filtered, '#f6d9de');
+Strip.renderPreview(filtered, 'vertical', photos);
+Strip.applyTheme(filtered, 'retro');
+Strip.applyPhotoFilter(filtered, 'bw');
+assert.strictEqual(filtered.attrs['data-filter'], 'bw', 'applyPhotoFilter stamps data-filter');
+assert.strictEqual(
+  filtered.style['--pb-filter'], 'grayscale(1) contrast(1.05)',
+  '--pb-filter carries the CSS filter string'
+);
+assert.strictEqual(filtered.attrs['data-theme'], 'retro', 'filter never touches the theme');
+assert.strictEqual(filtered.style.backgroundColor, '#f6d9de', 'filter never touches the color');
+assert.strictEqual(
+  filtered.children.filter(function (c) { return c.tagName === 'img'; }).length,
+  4,
+  'filter never touches the photos'
+);
+
+// Switching filters replaces the previous one, and Original restores the
+// base appearance exactly.
+Strip.applyPhotoFilter(filtered, 'warm');
+assert.strictEqual(filtered.attrs['data-filter'], 'warm', 'filter switches');
+assert.strictEqual(
+  filtered.style['--pb-filter'], 'sepia(0.18) saturate(1.25) brightness(1.03)',
+  'new filter replaces the old'
+);
+Strip.applyPhotoFilter(filtered, 'original');
+assert.strictEqual(filtered.attrs['data-filter'], 'original', 'back to original');
+assert.strictEqual(filtered.style['--pb-filter'], 'brightness(1)', 'original restores the identity filter');
+
+Strip.applyPhotoFilter(filtered, 'not-a-filter');
+assert.strictEqual(filtered.attrs['data-filter'], 'original', 'unknown filter -> original');
+assert.strictEqual(Strip.filterKey(undefined), 'original', 'missing filter -> original');
+
+// Effects are separate and optional (off by default).
+Strip.applyPhotoEffect(filtered, 'grain');
+assert.strictEqual(filtered.attrs['data-effect'], 'grain', 'applyPhotoEffect stamps data-effect');
+Strip.applyPhotoEffect(filtered, 'not-an-effect');
+assert.strictEqual(filtered.attrs['data-effect'], 'none', 'unknown effect -> off');
+assert.strictEqual(Strip.effectKey(undefined), 'none', 'missing effect -> off');
+
+// Filter picker: 6 pills, original selected, click + keyboard both work.
+var fx = new FakeEl('div');
+var pickedFx = [];
+Strip.buildFilterSwatches(fx, function (key) { pickedFx.push(key); }, 'original');
+assert.strictEqual(fx.children.length, 6, '6 filter options built');
+assert.strictEqual(fx.children[0].getAttribute('aria-checked'), 'true', 'original selected by default');
+assert.strictEqual(fx.children[0].getAttribute('aria-label'), 'Photo filter: Original', 'filter labelled');
+pickedFx.length = 0;
+fx.children[3].events.click(); // warm
+assert.strictEqual(fx.children[3].getAttribute('aria-checked'), 'true', 'warm selected after click');
+assert.strictEqual(fx.children[0].getAttribute('aria-checked'), 'false', 'original deselected');
+assert.deepStrictEqual(pickedFx, ['warm'], 'onPick receives the filter');
+pickedFx.length = 0;
+fx.children[0].events.keydown({ key: 'ArrowRight', preventDefault: function () {} });
+assert.strictEqual(fx.children[1].getAttribute('aria-checked'), 'true', 'arrow-key moves filter forward');
+assert.deepStrictEqual(pickedFx, ['bw'], 'keyboard filter pick fires onPick');
+
+// Effect picker: 3 pills, off selected.
+var ex = new FakeEl('div');
+var pickedEx = [];
+Strip.buildEffectSwatches(ex, function (key) { pickedEx.push(key); }, 'none');
+assert.strictEqual(ex.children.length, 3, '3 effect options built');
+assert.strictEqual(ex.children[0].getAttribute('aria-checked'), 'true', 'off selected by default');
+pickedEx.length = 0;
+ex.children[1].events.click(); // film grain
+assert.deepStrictEqual(pickedEx, ['grain'], 'onPick receives the effect');
+
+console.log('strip layout + color + theme + filter tests passed ✓');

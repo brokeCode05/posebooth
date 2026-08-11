@@ -314,8 +314,135 @@
     return buttons;
   }
 
+  // ── Phase 4D: photo filters & effects ────────────────────────────────
+
+  // Photo filters change the APPEARANCE of the photos only — the theme,
+  // frame, borders and strip background stay untouched. Each filter maps
+  // to a CSS filter-function string applied to the <img> elements via the
+  // --pb-filter custom property on the strip container (Original uses the
+  // identity brightness(1) so filter chains stay valid). The original
+  // photo data is never modified, so switching back to Original restores
+  // the photos exactly.
+  var FILTERS = [
+    { key: 'original', name: 'Original', css: 'brightness(1)' },
+    { key: 'bw', name: 'Black & White', css: 'grayscale(1) contrast(1.05)' },
+    { key: 'vintage', name: 'Vintage', css: 'sepia(0.4) contrast(0.9) brightness(0.96) saturate(1.1)' },
+    { key: 'warm', name: 'Warm', css: 'sepia(0.18) saturate(1.25) brightness(1.03)' },
+    { key: 'cool', name: 'Cool', css: 'hue-rotate(12deg) saturate(0.9) brightness(1.03)' },
+    { key: 'fade', name: 'Fade', css: 'contrast(0.82) brightness(1.12) saturate(0.7)' }
+  ];
+
+  // Optional photo effects, subtle and exclusive of each other (one filter
+  // + one effect at a time). 'none' = off.
+  var EFFECTS = [
+    { key: 'none', name: 'Off' },
+    { key: 'grain', name: 'Film Grain' },
+    { key: 'glow', name: 'Soft Glow' }
+  ];
+
+  function findByKey(list, key) {
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].key === key) return list[i];
+    }
+    return null;
+  }
+
+  // Normalize filter/effect keys; unknown values fall back to the defaults.
+  function filterKey(key) {
+    return findByKey(FILTERS, key) ? key : 'original';
+  }
+
+  function effectKey(key) {
+    return findByKey(EFFECTS, key) ? key : 'none';
+  }
+
+  // Apply a photo filter to the strip container: stamps data-filter and sets
+  // the --pb-filter custom property that the .strip-preview img rules
+  // consume. Only the photo appearance changes.
+  function applyPhotoFilter(container, key) {
+    if (!container) return;
+    var k = filterKey(key);
+    var f = findByKey(FILTERS, k);
+    container.setAttribute('data-filter', k);
+    container.style.setProperty('--pb-filter', f ? f.css : 'brightness(1)');
+  }
+
+  // Apply an optional photo effect (none | grain | glow) — also stamps
+  // data-effect for the CSS layer. Independent of the photo filter.
+  function applyPhotoEffect(container, key) {
+    if (!container) return;
+    container.setAttribute('data-effect', effectKey(key));
+  }
+
+  // Shared radiogroup row builder for the filter/effect pickers (mirrors
+  // the color/theme swatch pattern: arrow keys, aria-checked, clear
+  // selected state). Items are [{ key, name }]; keyAttr stores the key on
+  // each button.
+  function buildFxRow(container, items, initialKey, keyAttr, labelPrefix, onPick) {
+    if (!container) return [];
+    container.innerHTML = '';
+    var buttons = [];
+
+    items.forEach(function (it) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'fx-option';
+      btn.setAttribute('role', 'radio');
+      btn.setAttribute('aria-checked', 'false');
+      btn.setAttribute(keyAttr, it.key);
+      btn.setAttribute('aria-label', labelPrefix + ': ' + it.name);
+      btn.textContent = it.name;
+      btn.addEventListener('click', function () {
+        pick(btn);
+        if (onPick) onPick(it.key);
+      });
+      btn.addEventListener('keydown', function (e) {
+        var idx = buttons.indexOf(btn);
+        var next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          next = buttons[(idx + 1) % buttons.length];
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          next = buttons[(idx - 1 + buttons.length) % buttons.length];
+        }
+        if (next) {
+          e.preventDefault();
+          pick(next);
+          next.focus();
+          if (onPick) onPick(next.getAttribute(keyAttr));
+        }
+      });
+      container.appendChild(btn);
+      buttons.push(btn);
+    });
+
+    function pick(target) {
+      buttons.forEach(function (b) {
+        var on = b === target;
+        b.classList.toggle('is-selected', on);
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+    }
+
+    var current = initialKey;
+    var found = null;
+    buttons.forEach(function (b) {
+      if (b.getAttribute(keyAttr) === current) found = b;
+    });
+    if (found) pick(found);
+    return buttons;
+  }
+
+  // Visual pickers for filters and effects (pills with clear active states).
+  function buildFilterSwatches(container, onPick, initialKey) {
+    return buildFxRow(container, FILTERS, filterKey(initialKey), 'data-filter', 'Photo filter', onPick);
+  }
+
+  function buildEffectSwatches(container, onPick, initialKey) {
+    return buildFxRow(container, EFFECTS, effectKey(initialKey), 'data-effect', 'Effect', onPick);
+  }
+
   root.Strip = {
-    version: '4.9.1',
+    version: '4.10.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
@@ -327,7 +454,15 @@
     themeKey: themeKey,
     decor: DECOR,
     applyTheme: applyTheme,
-    buildThemeSwatches: buildThemeSwatches
+    buildThemeSwatches: buildThemeSwatches,
+    filters: FILTERS,
+    effects: EFFECTS,
+    filterKey: filterKey,
+    effectKey: effectKey,
+    applyPhotoFilter: applyPhotoFilter,
+    applyPhotoEffect: applyPhotoEffect,
+    buildFilterSwatches: buildFilterSwatches,
+    buildEffectSwatches: buildEffectSwatches
   };
 
   // Allow the layout logic to be smoke-tested in Node.

@@ -30,6 +30,8 @@
     poseMatches: [], //     pose guide path per captured photo, parallel to photos (3.5)
     stripColor: '#ffffff', //  strip background color, white default (Phase 4B)
     stripTheme: 'minimal', //  strip decorative theme, minimal default (Phase 4C)
+    filter: 'original', //    photo filter, original default (Phase 4D)
+    effect: 'none', //        optional photo effect, off default (Phase 4D)
   };
 
   /* ── Definitions ────────────────────────────────────────────────────── */
@@ -341,7 +343,7 @@
 
   /* ── Public API (consumed by later phases) ──────────────────────────── */
   window.Posebooth = {
-    version: '4.9.1',
+    version: '4.10.0',
     phase: 3,
     getConfig: function () {
       return {
@@ -364,6 +366,8 @@
         poseMatches: state.poseMatches.slice(),
         stripColor: state.stripColor,
         stripTheme: state.stripTheme,
+        filter: state.filter,
+        effect: state.effect,
       };
     },
     setPoseSequence: function (paths) {
@@ -394,6 +398,12 @@
     },
     setStripTheme: function (key) {
       state.stripTheme = key || 'minimal';
+    },
+    setFilter: function (key) {
+      state.filter = key || 'original';
+    },
+    setEffect: function (key) {
+      state.effect = key || 'none';
     },
     // Debug-only: lets the shooting system force a known-good session for
     // the "Simulate full run" diagnostic. Not used by the real flow.

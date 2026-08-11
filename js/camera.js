@@ -75,6 +75,8 @@
       customRestart: document.getElementById('btn-custom-restart'),
       colorSwatches: document.getElementById('color-swatches'),
       themeSwatches: document.getElementById('theme-swatches'),
+      filterSwatches: document.getElementById('filter-swatches'),
+      effectSwatches: document.getElementById('effect-swatches'),
       footVer: document.getElementById('foot-ver'),
       flash: document.getElementById('flash')
     };
@@ -92,6 +94,8 @@
     Posebooth.clearPhotos(); // fresh session: exactly 4 new photos
     Posebooth.setStripColor('#ffffff'); // fresh session: white strip
     Posebooth.setStripTheme('minimal'); // fresh session: minimal theme
+    Posebooth.setFilter('original'); //  fresh session: original photos
+    Posebooth.setEffect('none'); //      fresh session: no effect
     resetView();
     setupPoses();
     enterShooting();
@@ -560,6 +564,18 @@
       Posebooth.setStripTheme(key);
       Strip.applyTheme(els.stripPreview, key);
     }, s.stripTheme, Posebooth.getConfig().layout);
+    // Phase 4D: filters/effects change the appearance of the photos only —
+    // apply the saved choices and rebuild the pickers to match the state.
+    Strip.applyPhotoFilter(els.stripPreview, s.filter);
+    Strip.buildFilterSwatches(els.filterSwatches, function (key) {
+      Posebooth.setFilter(key);
+      Strip.applyPhotoFilter(els.stripPreview, key);
+    }, s.filter);
+    Strip.applyPhotoEffect(els.stripPreview, s.effect);
+    Strip.buildEffectSwatches(els.effectSwatches, function (key) {
+      Posebooth.setEffect(key);
+      Strip.applyPhotoEffect(els.stripPreview, key);
+    }, s.effect);
     // Move focus into the customize panel (it replaces the done screen).
     els.customize.focus({ preventScroll: true });
   }
@@ -592,7 +608,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '4.9.1';
+  var DEBUG_VERSION = '4.10.0';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
