@@ -443,4 +443,17 @@ assert.ok(cellRule, '.photo-cell clip rule exists');
 assert.ok(/overflow:\s*hidden/.test(cellRule[1]), '.photo-cell clips effect output to the photo');
 assert.ok(/position:\s*relative/.test(cellRule[1]), '.photo-cell anchors the photo cell');
 
+// 5. Filters may ONLY ever be applied to the photo imgs — never to the
+//    strip container, theme frame or decor layer. Every rule using
+//    filter: must target an img selector, so the frame/background can
+//    never receive a photo effect.
+var cssNoComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+var filteredRules = cssNoComments.split('}').filter(function (block) {
+  return /filter\s*:/.test(block);
+});
+assert.ok(filteredRules.length >= 3, 'the photo-filter rules are present');
+filteredRules.forEach(function (block) {
+  assert.ok(/img\s*\{/.test(block), 'every filter rule targets the photo <img> only');
+});
+
 console.log('strip layout + color + theme + filter tests passed ✓');

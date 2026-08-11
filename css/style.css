@@ -1733,6 +1733,7 @@ a {
   display: block;
   position: relative;
   overflow: hidden;
+  contain: paint; /* belt-and-braces: the cell owns its painting, nothing escapes */
   border-radius: 2px;
   background: var(--surface-2);
 }
