@@ -2063,10 +2063,12 @@ a {
 }
 
 .strip-preview[data-theme="classic"] .pd-wordmark {
+  font-family: "Arial", "Helvetica Neue", "Segoe UI", sans-serif;
+  font-weight: 900;
+  font-size: 1.6em;
+  letter-spacing: 0.42em;
   writing-mode: vertical-rl;
-  font-size: 1.5em;
-  letter-spacing: 0.5em;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 /* cute — fun and playful: polka-dot backing, rounded photos, hearts, a
@@ -2143,10 +2145,12 @@ a {
 }
 
 .strip-preview[data-theme="y2k"] .pd-wordmark {
-  writing-mode: vertical-rl;
+  font-family: "Arial Black", "Franklin Gothic Medium", "Avenir Next", sans-serif;
+  font-weight: 800;
+  font-size: 1.6em;
   font-style: italic;
-  font-size: 1.5em;
-  letter-spacing: 0.4em;
+  letter-spacing: 0.2em;
+  writing-mode: vertical-rl;
   color: transparent;
   background: linear-gradient(180deg, #ff5f8f, #b06bff 55%, #4fc8ff);
   -webkit-background-clip: text;
@@ -2169,11 +2173,11 @@ a {
 }
 
 .strip-preview[data-theme="retro"] .pd-wordmark {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: Georgia, 'Times New Roman', 'Songti SC', serif;
   font-weight: 600;
   font-size: 1.8em;
-  letter-spacing: 0.34em;
-  opacity: 0.75;
+  letter-spacing: 0.22em;
+  opacity: 0.8;
 }
 
 .strip-preview[data-theme="retro"] .pd-stamp {
@@ -2245,13 +2249,57 @@ a {
 }
 
 .theme-option.is-selected {
-  border-color: var(--ink-strong);
-  color: var(--ink-strong);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .theme-option:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.theme-option .theme-name {
+  font-size: 10px;
+}
+
+/* Each theme card previews its typography — the label uses the theme's own
+   font family, so the picker (below the colour panel) shows at a glance
+   what the strip wordmark will read like. */
+.theme-option[data-theme="minimal"] .theme-name {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.theme-option[data-theme="classic"] .theme-name {
+  font-family: "Arial", "Helvetica Neue", "Segoe UI", sans-serif;
+  font-weight: 800;
+}
+
+.theme-option[data-theme="cute"] .theme-name {
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", "Segoe Print", cursive;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
+
+.theme-option[data-theme="y2k"] .theme-name {
+  font-family: "Arial Black", "Franklin Gothic Medium", "Avenir Next", sans-serif;
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.theme-option[data-theme="retro"] .theme-name {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.theme-option[data-theme="pastel"] .theme-name {
+  font-family: "Trebuchet MS", "Verdana", "Segoe UI", sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
 }
 
 /* Mini mock of the strip. Reuses the .strip-preview + [data-theme] rules
@@ -2261,7 +2309,7 @@ a {
    injected .pd decorations scale down with the .pd-layer font-size. */
 .theme-demo,
 .theme-demo[data-layout="vertical"] {
-  width: 26px;
+  width: 30px;
   aspect-ratio: 1 / 3;
   flex-direction: column;
   justify-content: center;
@@ -2273,7 +2321,7 @@ a {
 }
 
 .theme-demo[data-layout="horizontal"] {
-  width: 58px;
+  width: 64px;
   aspect-ratio: 3 / 1;
   flex-direction: row;
   gap: 3px;
@@ -2285,7 +2333,7 @@ a {
   grid-template-columns: repeat(2, 1fr);
   align-content: center;
   gap: 3px;
-  width: 44px;
+  width: 48px;
   aspect-ratio: 3 / 4;
   padding: 4px 5px 6px;
 }
@@ -2314,7 +2362,7 @@ a {
 
 /* Shrink the injected decorations inside the mini previews */
 .theme-demo .pd-layer {
-  font-size: 2.4px;
+  font-size: 2.6px;
 }
 
 .theme-demo .pd-wordmark {
