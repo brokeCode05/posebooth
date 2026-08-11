@@ -38,12 +38,18 @@ var Strip = require('../js/strip.js');
 
 /* ── Layout rendering (Phase 4A) ─────────────────────────────────────── */
 var photos = ['data:photo1', 'data:photo2', 'data:photo3', 'data:photo4'];
+var RATIOS = {
+  vertical: '1500 / 3600',
+  grid: '3000 / 3600',
+  horizontal: '3600 / 2400'
+};
 
 ['vertical', 'horizontal', 'grid'].forEach(function (layout) {
   var el = new FakeEl('div');
   Strip.renderPreview(el, layout, photos);
 
   assert.strictEqual(el.attrs['data-layout'], layout, layout + ': layout applied');
+  assert.strictEqual(el.style.aspectRatio, RATIOS[layout], layout + ': master canvas ratio applied');
   assert.strictEqual(el.children.length, 4, layout + ': exactly 4 photos');
   assert.deepStrictEqual(
     el.children.map(function (c) { return c.src; }),
@@ -62,6 +68,14 @@ assert.strictEqual(capped.children.length, 4, 'caps at 4');
 
 assert.strictEqual(Strip.layoutKey('diagonal'), 'vertical', 'unknown layout -> vertical');
 assert.strictEqual(Strip.layoutKey(undefined), 'vertical', 'missing layout -> vertical');
+assert.strictEqual(Strip.canvasRatio('diagonal'), '1500 / 3600', 'unknown layout -> vertical canvas');
+
+// Master canvas map: the standard digital working canvases.
+assert.deepStrictEqual(Strip.canvas, {
+  vertical: { width: 1500, height: 3600 },
+  grid: { width: 3000, height: 3600 },
+  horizontal: { width: 3600, height: 2400 }
+}, 'master canvas dimensions');
 
 /* ── Strip color (Phase 4B) ──────────────────────────────────────────── */
 assert.strictEqual(Strip.colors.length, 8, '8 curated colors');

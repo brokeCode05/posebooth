@@ -1699,11 +1699,19 @@ a {
   margin: 2px 0 6px;
 }
 
-/* The strip itself — a white backing with the four photos, tight gaps. */
+/* The strip itself — a master-canvas backing with the four photos and
+   intentional breathing room for future themed frame designs. The exact
+   aspect-ratio (vertical 1500×3600, grid 3000×3600, horizontal 3600×2400)
+   is applied inline by the renderer so the preview always keeps the true
+   print proportions; the width is capped below so the preview stays a
+   comfortable size on screen and scales down on narrow viewports. */
 .strip-preview {
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 4px;
   padding: 8px;
+  width: min(340px, 92vw);
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: 6px;
@@ -1712,32 +1720,44 @@ a {
 .strip-preview img {
   display: block;
   width: 100%;
+  max-width: none;
   object-fit: cover;
   aspect-ratio: 4 / 3;
   border-radius: 2px;
   background: var(--surface-2);
 }
 
-/* Vertical — a column of four, like a classic photo strip */
+/* Vertical — 1500×3600 master (5:12). A classic tall column; the photos
+   sit at ~68% of the canvas width with even gaps, and the colour backing
+   fills the full tall canvas around them. */
 .strip-preview[data-layout="vertical"] {
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+  width: min(300px, 86vw);
+  padding: 4.5% 16%;
 }
 
-.strip-preview[data-layout="vertical"] img {
-  width: 200px;
+/* Horizontal — 3600×2400 master (3:2). A row of four centred vertically,
+   leaving generous upper/lower canvas for future frame bands. */
+.strip-preview[data-layout="horizontal"] {
+  width: min(480px, 94vw);
+  padding: 8% 1.5%;
 }
 
-/* Horizontal — a row of four */
 .strip-preview[data-layout="horizontal"] img {
-  width: 118px;
+  width: 23%;
 }
 
-/* 2 × 2 grid */
+/* 2 × 2 grid — 3000×3600 master (5:6). The photo block sits toward the
+   top; the extra lower canvas is deliberate frame space. */
 .strip-preview[data-layout="grid"] {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  width: 280px;
+  align-content: start;
+  gap: 14px;
+  width: min(340px, 92vw);
+  padding: 6% 7% 13%;
 }
 
 .strip-preview[data-layout="grid"] img {
@@ -1749,20 +1769,6 @@ a {
   font-size: 11px;
   color: var(--ink-faint);
   margin: 14px 0;
-}
-
-@media (max-width: 520px) {
-  .strip-preview[data-layout="vertical"] img {
-    width: 160px;
-  }
-
-  .strip-preview[data-layout="horizontal"] img {
-    width: 90px;
-  }
-
-  .strip-preview[data-layout="grid"] {
-    width: 220px;
-  }
 }
 
 /* ==========================================================================

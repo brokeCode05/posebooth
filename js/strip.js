@@ -13,6 +13,17 @@
 
   var PHOTO_LIMIT = 4; // the rule: exactly four photos.
 
+  // Master working canvases for the strip, in design pixels. The browser
+  // preview scales these down but always preserves the exact ratio; the
+  // same dimensions will drive the eventual printable/downloadable export.
+  // The extra room around the photos is intentional breathing space for
+  // future themed frame designs (borders, stickers, typography, logos).
+  var CANVAS = {
+    vertical:   { width: 1500, height: 3600 }, // 5 : 12
+    grid:       { width: 3000, height: 3600 }, // 5 : 6
+    horizontal: { width: 3600, height: 2400 }  // 3 : 2
+  };
+
   // Normalize the Phase 1 layout value to one of the three strip shapes.
   // 'grid' and 'horizontal' map through; anything else falls back to
   // 'vertical' so a missing layout never produces a broken preview.
@@ -21,14 +32,23 @@
     return 'vertical';
   }
 
+  // CSS aspect-ratio string for the master canvas of a layout.
+  function canvasRatio(layout) {
+    var c = CANVAS[layoutKey(layout)];
+    return c.width + ' / ' + c.height;
+  }
+
   // Build the strip: exactly four <img> in DOM order (photo 1..4), one per
   // captured photo. The container carries data-layout so the stylesheet
-  // arranges them (row, column, 2×2). Images use object-fit: cover on a
-  // fixed 4:3 frame, so nothing is stretched or distorted.
+  // arranges them (row, column, 2×2), and an inline aspect-ratio matching
+  // the master canvas so the preview keeps the exact print proportions.
+  // Images use object-fit: cover on a fixed 4:3 frame, so nothing is
+  // stretched or distorted.
   function renderPreview(container, layout, photos) {
     if (!container) return;
     var taken = (photos || []).slice(0, PHOTO_LIMIT);
     container.setAttribute('data-layout', layoutKey(layout));
+    container.style.aspectRatio = canvasRatio(layout);
     container.innerHTML = '';
     taken.forEach(function (src, i) {
       var img = document.createElement('img');
@@ -128,8 +148,10 @@
   }
 
   root.Strip = {
-    version: '4.1.0',
+    version: '4.2.0',
+    canvas: CANVAS,
     layoutKey: layoutKey,
+    canvasRatio: canvasRatio,
     renderPreview: renderPreview,
     colors: STRIP_COLORS,
     setColor: setColor,
