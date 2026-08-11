@@ -74,6 +74,7 @@
       customContinue: document.getElementById('btn-custom-continue'),
       customRestart: document.getElementById('btn-custom-restart'),
       colorSwatches: document.getElementById('color-swatches'),
+      themeSwatches: document.getElementById('theme-swatches'),
       footVer: document.getElementById('foot-ver'),
       flash: document.getElementById('flash')
     };
@@ -90,6 +91,7 @@
 
     Posebooth.clearPhotos(); // fresh session: exactly 4 new photos
     Posebooth.setStripColor('#ffffff'); // fresh session: white strip
+    Posebooth.setStripTheme('minimal'); // fresh session: minimal theme
     resetView();
     setupPoses();
     enterShooting();
@@ -551,6 +553,13 @@
       Posebooth.setStripColor(hex);
       Strip.setColor(els.stripPreview, hex);
     }, s.stripColor);
+    // Phase 4C: the theme is a decorative layer on top of the color — apply
+    // the saved theme and rebuild the picker to match the current state.
+    Strip.applyTheme(els.stripPreview, s.stripTheme);
+    Strip.buildThemeSwatches(els.themeSwatches, function (key) {
+      Posebooth.setStripTheme(key);
+      Strip.applyTheme(els.stripPreview, key);
+    }, s.stripTheme);
     // Move focus into the customize panel (it replaces the done screen).
     els.customize.focus({ preventScroll: true });
   }
@@ -583,7 +592,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '4.5.0';
+  var DEBUG_VERSION = '4.6.0';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.

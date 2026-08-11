@@ -114,4 +114,50 @@ first.events.keydown({ key: 'ArrowRight', preventDefault: function () {} });
 assert.strictEqual(swatches.children[1].getAttribute('aria-checked'), 'true', 'arrow-right moves selection forward');
 assert.deepStrictEqual(picked, [swatches.children[1].getAttribute('data-hex')], 'keyboard pick fires onPick');
 
-console.log('strip layout + color tests passed ✓');
+/* ── Strip themes (Phase 4C) ─────────────────────────────────────────── */
+assert.strictEqual(Strip.themes.length, 6, '6 curated themes');
+assert.strictEqual(Strip.themes[0].key, 'minimal', 'minimal is the default first theme');
+
+// applyTheme sets data-theme only — photos and color untouched.
+var themed = new FakeEl('div');
+Strip.setColor(themed, '#f6d9de');
+Strip.renderPreview(themed, 'vertical', photos);
+Strip.applyTheme(themed, 'y2k');
+assert.strictEqual(themed.attrs['data-theme'], 'y2k', 'applyTheme stamps data-theme');
+assert.strictEqual(themed.style.backgroundColor, '#f6d9de', 'theme never touches the color');
+assert.strictEqual(themed.children.length, 4, 'theme never touches the photos');
+
+Strip.applyTheme(themed, 'not-a-theme');
+assert.strictEqual(themed.attrs['data-theme'], 'minimal', 'unknown theme falls back to minimal');
+assert.strictEqual(Strip.themeKey(undefined), 'minimal', 'missing theme -> minimal');
+
+// buildThemeSwatches: 6 buttons, each with a 4-cell mini demo + label.
+var themeSwatches = new FakeEl('div');
+var pickedThemes = [];
+Strip.buildThemeSwatches(themeSwatches, function (key) { pickedThemes.push(key); }, 'minimal');
+assert.strictEqual(themeSwatches.children.length, 6, '6 theme options built');
+assert.strictEqual(themeSwatches.children[0].getAttribute('aria-checked'), 'true', 'default minimal is selected');
+assert.strictEqual(themeSwatches.children[0].getAttribute('aria-label'), 'Strip theme: Minimal', 'minimal labelled');
+assert.strictEqual(
+  themeSwatches.children[3].getAttribute('data-theme'), 'y2k',
+  'theme order: minimal, classic, cute, y2k, retro, pastel'
+);
+var demo = themeSwatches.children[3].children[0];
+assert.strictEqual(demo.attrs['data-theme'], 'y2k', 'demo preview carries the theme');
+assert.strictEqual(demo.children.length, 4, 'demo preview shows 4 photo cells');
+
+// Click Y2K — selection moves + onPick fires.
+pickedThemes.length = 0;
+var y2kBtn = themeSwatches.children[3];
+y2kBtn.events.click();
+assert.strictEqual(y2kBtn.getAttribute('aria-checked'), 'true', 'y2k selected after click');
+assert.strictEqual(themeSwatches.children[0].getAttribute('aria-checked'), 'false', 'minimal deselected');
+assert.deepStrictEqual(pickedThemes, ['y2k'], 'onPick receives the picked theme');
+
+// Arrow-key navigation moves theme selection forward.
+pickedThemes.length = 0;
+themeSwatches.children[0].events.keydown({ key: 'ArrowRight', preventDefault: function () {} });
+assert.strictEqual(themeSwatches.children[1].getAttribute('aria-checked'), 'true', 'arrow-right moves theme forward');
+assert.deepStrictEqual(pickedThemes, ['classic'], 'keyboard theme pick fires onPick');
+
+console.log('strip layout + color + theme tests passed ✓');

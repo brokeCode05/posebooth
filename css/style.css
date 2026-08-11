@@ -1708,6 +1708,7 @@ a {
    print proportions; the width is capped below so the preview stays a
    comfortable size on screen and scales down on narrow viewports. */
 .strip-preview {
+  position: relative; /* anchor for absolutely-placed theme accents */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1832,5 +1833,162 @@ a {
 .swatch:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Phase 4C — Strip themes (decorative layer on top of color + layout)
+
+   COLOR = base/background (inline backgroundColor from Phase 4B).
+   THEME = decoration: borders, accents, background treatment. Applied via
+   the data-theme attribute; a theme never touches photos, layout or color.
+   ========================================================================== */
+
+/* minimal (default) — the clean base; no extra decoration */
+
+/* classic — classic photobooth print: solid frame + cut guide */
+.strip-preview[data-theme="classic"] {
+  border: 3px solid rgba(0, 0, 0, 0.82);
+  box-shadow:
+    inset 0 0 0 5px rgba(0, 0, 0, 0.07),
+    inset 0 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+/* cute — playful polka-dot backing (shows in the frame margins) */
+.strip-preview[data-theme="cute"] {
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1.4px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+
+.strip-preview[data-theme="cute"] img {
+  border-radius: 10px;
+}
+
+/* y2k — glossy diagonal streak + chrome frame + tiny sparkle */
+.strip-preview[data-theme="y2k"] {
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.14),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.strip-preview[data-theme="y2k"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 34%,
+    rgba(255, 255, 255, 0.16) 47%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  pointer-events: none;
+}
+
+.strip-preview[data-theme="y2k"]::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.92);
+  transform: rotate(45deg);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+/* retro — warm film print: double frame + soft inner edge */
+.strip-preview[data-theme="retro"] {
+  border: 4px double rgba(0, 0, 0, 0.32);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+
+/* pastel — airy soft frame with rounded corners */
+.strip-preview[data-theme="pastel"] {
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 3px rgba(0, 0, 0, 0.05),
+    0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.strip-preview[data-theme="pastel"] img {
+  border-radius: 8px;
+}
+
+/* ── Theme picker: mini strip previews that reuse the real theme CSS ──── */
+
+.theme-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.theme-option:hover {
+  background: var(--surface-2);
+}
+
+.theme-option.is-selected {
+  border-color: var(--ink-strong);
+  color: var(--ink-strong);
+}
+
+.theme-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Mini mock of the strip. Reuses the .strip-preview + [data-theme] rules
+   above (later in the file wins over the base), sized down and forced into
+   a vertical 1:3 stack so every theme preview reads like a tiny strip. */
+.theme-demo {
+  width: 26px;
+  aspect-ratio: 1 / 3;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 3px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.theme-demo i {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 1px;
+  background: rgba(0, 0, 0, 0.28);
+  font-style: normal;
+}
+
+.theme-demo[data-theme="cute"] i {
+  border-radius: 4px;
+}
+
+.theme-demo[data-theme="pastel"] i {
+  border-radius: 3px;
 }
 

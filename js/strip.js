@@ -149,15 +149,125 @@
     return buttons;
   }
 
+  // ── Phase 4C: strip themes (decorative layer) ─────────────────────────
+
+  // Curated theme set. Each theme is a decorative layer (borders, accents,
+  // background treatment) applied via the data-theme attribute on the strip
+  // container. COLOR = base/background, THEME = decoration — the two compose,
+  // and a theme never touches the photos or the selected color.
+  var THEMES = [
+    { key: 'minimal', name: 'Minimal' },
+    { key: 'classic', name: 'Classic' },
+    { key: 'cute', name: 'Cute' },
+    { key: 'y2k', name: 'Y2K' },
+    { key: 'retro', name: 'Retro' },
+    { key: 'pastel', name: 'Pastel' }
+  ];
+
+  // Normalize a theme key; unknown keys fall back to 'minimal'.
+  function themeKey(key) {
+    for (var i = 0; i < THEMES.length; i++) {
+      if (THEMES[i].key === key) return key;
+    }
+    return 'minimal';
+  }
+
+  // Apply a theme to the strip container. Only the decorative layer changes
+  // (the data-theme attribute); photos, layout and color stay untouched.
+  function applyTheme(container, key) {
+    if (!container) return;
+    container.setAttribute('data-theme', themeKey(key));
+  }
+
+  // Build the visual theme picker. Each option shows a mini mock of the
+  // strip rendered with the REAL theme CSS (class strip-preview theme-demo),
+  // so the preview honestly shows what the strip will look like. Mirrors the
+  // color swatch radiogroup: arrow keys, aria-checked, clear selected ring.
+  function buildThemeSwatches(container, onPick, initialKey) {
+    if (!container) return [];
+    container.innerHTML = '';
+    var buttons = [];
+
+    THEMES.forEach(function (t) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'theme-option';
+      btn.setAttribute('role', 'radio');
+      btn.setAttribute('aria-checked', 'false');
+      btn.setAttribute('data-theme', t.key);
+      btn.setAttribute('aria-label', 'Strip theme: ' + t.name);
+
+      // Mini strip preview that reuses the live theme CSS.
+      var demo = document.createElement('span');
+      demo.className = 'strip-preview theme-demo';
+      demo.setAttribute('data-theme', t.key);
+      for (var i = 0; i < 4; i++) {
+        var cell = document.createElement('i');
+        cell.setAttribute('aria-hidden', 'true');
+        demo.appendChild(cell);
+      }
+      btn.appendChild(demo);
+
+      var label = document.createElement('span');
+      label.className = 'theme-name';
+      label.textContent = t.name;
+      btn.appendChild(label);
+
+      btn.addEventListener('click', function () {
+        pick(btn);
+        if (onPick) onPick(t.key);
+      });
+      btn.addEventListener('keydown', function (e) {
+        var idx = buttons.indexOf(btn);
+        var next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          next = buttons[(idx + 1) % buttons.length];
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          next = buttons[(idx - 1 + buttons.length) % buttons.length];
+        }
+        if (next) {
+          e.preventDefault();
+          pick(next);
+          next.focus();
+          if (onPick) onPick(next.getAttribute('data-theme'));
+        }
+      });
+
+      container.appendChild(btn);
+      buttons.push(btn);
+    });
+
+    function pick(target) {
+      buttons.forEach(function (b) {
+        var on = b === target;
+        b.classList.toggle('is-selected', on);
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+    }
+
+    // Mark the initial/current theme (default minimal).
+    var current = themeKey(initialKey);
+    var found = null;
+    buttons.forEach(function (b) {
+      if (b.getAttribute('data-theme') === current) found = b;
+    });
+    if (found) pick(found);
+    return buttons;
+  }
+
   root.Strip = {
-    version: '4.5.0',
+    version: '4.6.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
     renderPreview: renderPreview,
     colors: STRIP_COLORS,
     setColor: setColor,
-    buildColorSwatches: buildColorSwatches
+    buildColorSwatches: buildColorSwatches,
+    themes: THEMES,
+    themeKey: themeKey,
+    applyTheme: applyTheme,
+    buildThemeSwatches: buildThemeSwatches
   };
 
   // Allow the layout logic to be smoke-tested in Node.
