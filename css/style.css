@@ -2323,28 +2323,63 @@ a {
   text-indent: 0.12em;
 }
 
-.theme-demo .pd.tl,
-.theme-demo .pd.tr {
-  top: 6%;
-}
-
-.theme-demo .pd.bl,
-.theme-demo .pd.br {
-  bottom: 8%;
-}
-
-.theme-demo .pd.ml {
-  left: 2%;
-}
-
-.theme-demo .pd.mr {
-  right: 2%;
-}
-
 .theme-demo[data-theme="y2k"]::after {
   top: 3px;
   right: 3px;
   width: 4px;
   height: 4px;
+}
+
+/* Per-layout placement tweaks — keep decorations inside the frame margins.
+   Equal specificity to the theme rules but later in the file, so these win
+   for the real strip; the .theme-demo rules below re-tuck the mini cards. */
+
+/* Vertical (2×6): slim 3%/5% margins, so pull the corner accents and the
+   top wordmark in tight against the frame edge. */
+.strip-preview[data-layout="vertical"] .pd.tl { top: 1.5%; left: 2%; }
+.strip-preview[data-layout="vertical"] .pd.tr { top: 1.5%; right: 2%; }
+.strip-preview[data-layout="vertical"] .pd.bl { bottom: 2%; left: 2%; }
+.strip-preview[data-layout="vertical"] .pd.br { bottom: 2%; right: 2%; }
+.strip-preview[data-layout="vertical"] .pd.tc { top: 1.5%; }
+
+/* Side wordmarks hug the edge on the tall prints… */
+.strip-preview[data-layout="vertical"] .pd.ml { left: 1.5%; }
+.strip-preview[data-layout="vertical"] .pd.mr { right: 1.5%; }
+
+/* …but the 6×2 strip has almost no side margin, so vertical brand text
+   would run straight down the middle of the photos. Read it horizontally
+   in the bottom colour band instead — classic photobooth branding. */
+.strip-preview[data-layout="horizontal"] .pd.ml,
+.strip-preview[data-layout="horizontal"] .pd.mr {
+  writing-mode: horizontal-tb;
+  top: auto;
+  bottom: 4%;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
+/* Grid (6×8): keep the side wordmarks off the photo block. */
+.strip-preview[data-layout="grid"] .pd.ml { left: 1%; }
+.strip-preview[data-layout="grid"] .pd.mr { right: 1%; }
+
+/* Classic's dark wordmark stays legible on dark strip colours. */
+.strip-preview[data-theme="classic"] .pd-wordmark {
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
+}
+
+/* Mini previews: re-tuck the corner accents inside the tiny cards. */
+.theme-demo .pd.tl,
+.theme-demo .pd.tr {
+  top: 6%;
+  left: 10%;
+  right: 10%;
+}
+
+.theme-demo .pd.bl,
+.theme-demo .pd.br {
+  bottom: 8%;
+  left: 10%;
+  right: 10%;
 }
 
