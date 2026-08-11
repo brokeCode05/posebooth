@@ -41,7 +41,7 @@ var photos = ['data:photo1', 'data:photo2', 'data:photo3', 'data:photo4'];
 var RATIOS = {
   vertical: '1200 / 3600',
   grid: '3600 / 4800',
-  horizontal: '4800 / 3600'
+  horizontal: '3600 / 1200'
 };
 
 ['vertical', 'horizontal', 'grid'].forEach(function (layout) {
@@ -70,11 +70,12 @@ assert.strictEqual(Strip.layoutKey('diagonal'), 'vertical', 'unknown layout -> v
 assert.strictEqual(Strip.layoutKey(undefined), 'vertical', 'missing layout -> vertical');
 assert.strictEqual(Strip.canvasRatio('diagonal'), '1200 / 3600', 'unknown layout -> vertical canvas');
 
-// Master canvas map: real photobooth print sizes (2×6, 6×8, 8×6 inch).
+// Master canvas map: real photobooth print sizes (2×6, 6×8, 6×2 inch —
+// horizontal is the vertical print turned on its side).
 assert.deepStrictEqual(Strip.canvas, {
   vertical: { width: 1200, height: 3600 },
   grid: { width: 3600, height: 4800 },
-  horizontal: { width: 4800, height: 3600 }
+  horizontal: { width: 3600, height: 1200 }
 }, 'master canvas dimensions');
 
 /* ── Strip color (Phase 4B) ──────────────────────────────────────────── */

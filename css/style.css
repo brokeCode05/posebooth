@@ -1703,7 +1703,7 @@ a {
 
 /* The strip itself — a master-canvas backing with the four photos and
    intentional breathing room for future themed frame designs. The exact
-   aspect-ratio (vertical 1200×3600, grid 3600×4800, horizontal 4800×3600)
+   aspect-ratio (vertical 1200×3600, grid 3600×4800, horizontal 3600×1200)
    is applied inline by the renderer so the preview always keeps the true
    print proportions; the width is capped below so the preview stays a
    comfortable size on screen and scales down on narrow viewports. */
@@ -1741,13 +1741,13 @@ a {
   padding: 3% 5%;
 }
 
-/* Horizontal — 4800×3600 master (4:3, an 8×6 print). Just the vertical
-   layout turned landscape: the same 4:3 photo cells, in a row filling the
-   canvas width and centred vertically, so horizontal and vertical read as
-   one family. */
+/* Horizontal — 3600×1200 master (3:1, a 6×2 print): the vertical 2×6
+   print turned on its side. The same 4:3 photo cells run in a row and
+   fill most of the canvas height, so horizontal reads as vertical
+   rotated. */
 .strip-preview[data-layout="horizontal"] {
   gap: 8px;
-  width: min(520px, 94vw);
+  width: min(560px, 94vw);
   padding: 4% 1.5%;
 }
 
