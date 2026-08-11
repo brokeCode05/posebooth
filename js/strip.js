@@ -41,22 +41,30 @@
   }
 
   // Shared layout geometry — ONE intentional spacing system for every
-  // strip. Values are percentages of the container width (which maps 1:1
-  // onto the master canvas because the container keeps the exact print
-  // ratio), and each layout is computed so photos + gaps + margins fill
-  // the canvas EXACTLY — no leftover flexbox slack, no per-theme offsets,
-  // no arbitrary padding. Every margin and gap is deliberate:
+  // strip. All values are percentages of the container width (the browser
+  // resolves % padding/gap against width), and the container width maps
+  // 1:1 onto the master canvas because it keeps the exact print ratio.
+  // Each layout is solved so photos + gaps + margins fill the canvas
+  // height exactly — no leftover flexbox slack, no per-theme offsets, no
+  // arbitrary padding. Padding-box math (W = container width):
   //
-  //   vertical (1:3):   pads 8.5% top/bottom, 4% sides, 2.5% gap
-  //                     4 × (92% × ¾) + 3 gaps + 2 × 8.5% = 300% ✓
-  //   horizontal (3:1): pads 8.6% top/bottom, 4% sides, 2.5% gap
-  //                     cells 21.16% → 15.87% tall + 2 × 8.6% = 33.33% ✓
-  //   grid (3:4):       pads 31.8% top/bottom, 4% sides, 2.5% gaps
-  //                     block 69.6% + 2 × 31.8% = 133.2% ≈ 133.33% ✓
+  //   vertical (1:3):   pads 8% top/bottom, 4% sides, 2.5% gap
+  //                     photos 92% wide → 69% tall ×4
+  //                     276 + 3×2.5 + 2×8 = 299.5% ≈ 300% = 3W ✓
+  //   horizontal (3:1): pads 4% top/bottom, 4% sides, 2.5% gap
+  //                     cells 23% wide → 17.25% tall (51.75% of H) ×4
+  //                     4×17.25 + 3×2.5 + 2×4 = 84.5% = 84.5% of W,
+  //                     i.e. 253.5% of the 33.33%-of-W canvas height —
+  //                     the 4:3 photos can't fill a 3:1 canvas, so the
+  //                     cells size off the width axis (as the approved
+  //                     6×2 did) and the remaining height is the margin.
+  //   grid (3:4):       pads 30.92% top/bottom, 4% sides, 2.5% gap
+  //                     2 rows × 34.5% + gap 2.5% + pads 2×30.92%
+  //                     = 133.33% = 4/3 W ✓
   var GEOMETRY = {
-    vertical:   { padX: '4%',   padTop: '8.5%',  padBottom: '8.5%',  gap: '2.5%' },
-    horizontal: { padX: '4%',   padTop: '8.6%',  padBottom: '8.6%',  gap: '2.5%' },
-    grid:       { padX: '4%',   padTop: '31.8%', padBottom: '31.8%', gap: '2.5%' }
+    vertical:   { padX: '4%',      padTop: '8%',      padBottom: '8%',      gap: '2.5%' },
+    horizontal: { padX: '4%',      padTop: '4%',      padBottom: '4%',      gap: '2.5%' },
+    grid:       { padX: '4%',      padTop: '30.92%',  padBottom: '30.92%',  gap: '2.5%' }
   };
 
   // Build the strip: exactly four photos in DOM order (photo 1..4), each
@@ -545,7 +553,7 @@
   }
 
   root.Strip = {
-    version: '4.15.0',
+    version: '4.15.1',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,

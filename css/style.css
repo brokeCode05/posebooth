@@ -1761,21 +1761,22 @@ a {
   justify-content: flex-start;
   gap: var(--pb-gap, 2.5%);
   width: min(280px, 84vw);
-  padding: var(--pb-pad-top, 8.5%) var(--pb-pad-x, 4%);
+  padding: var(--pb-pad-top, 8%) var(--pb-pad-x, 4%);
 }
 
 /* Horizontal — 3600×1200 master (3:1, a 6×2 print): the vertical 2×6
-   print turned on its side. The same 4:3 photo cells run in a row and
-   fill most of the canvas height, so horizontal reads as vertical
-   rotated. */
+   print turned on its side. The same 4:3 photo cells run in a row;
+   the cells size off the width axis (25% of the content box, 23% of
+   the canvas) because 4:3 photos cannot fill a 3:1 canvas height, and
+   the slim 4% pads + 2.5% gaps leave the row as the dominant element. */
 .strip-preview[data-layout="horizontal"] {
   gap: var(--pb-gap, 2.5%);
   width: min(560px, 94vw);
-  padding: var(--pb-pad-top, 8.6%) var(--pb-pad-x, 4%);
+  padding: var(--pb-pad-top, 4%) var(--pb-pad-x, 4%);
 }
 
 .strip-preview[data-layout="horizontal"] .photo-cell {
-  width: 21.16%;
+  width: 23%;
 }
 
 /* Vertical — the cell is the flex item, so it needs an explicit width to
@@ -1793,7 +1794,7 @@ a {
   align-content: center;
   gap: var(--pb-gap, 2.5%);
   width: min(340px, 92vw);
-  padding: var(--pb-pad-top, 31.8%) var(--pb-pad-x, 4%) var(--pb-pad-bottom, 31.8%);
+  padding: var(--pb-pad-top, 30.92%) var(--pb-pad-x, 4%) var(--pb-pad-bottom, 30.92%);
 }
 
 

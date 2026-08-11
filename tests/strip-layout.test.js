@@ -113,6 +113,26 @@ assert.deepStrictEqual(Strip.canvas, {
   horizontal: { width: 3600, height: 1200 }
 }, 'master canvas dimensions');
 
+// Shared geometry — ONE intentional spacing system, solved per canvas so
+// photos + gaps + pads fit each print. Horizontal pads are width-percent
+// (the browser resolves % padding against width), so they must be small:
+// 8.6% on a 3:1 canvas would eat 51.6% of the height. These values are
+// exactly what the stylesheet consumes via var(--pb-*, fallback).
+var EXPECTED_GEOMETRY = {
+  vertical:   { padX: '4%',     padTop: '8%',     padBottom: '8%',     gap: '2.5%' },
+  horizontal: { padX: '4%',     padTop: '4%',     padBottom: '4%',     gap: '2.5%' },
+  grid:       { padX: '4%',     padTop: '30.92%', padBottom: '30.92%', gap: '2.5%' }
+};
+['vertical', 'horizontal', 'grid'].forEach(function (layout) {
+  var el = new FakeEl('div');
+  Strip.renderPreview(el, layout, photos);
+  var g = EXPECTED_GEOMETRY[layout];
+  assert.strictEqual(el.style['--pb-pad-x'], g.padX, layout + ': side padding');
+  assert.strictEqual(el.style['--pb-pad-top'], g.padTop, layout + ': top padding');
+  assert.strictEqual(el.style['--pb-pad-bottom'], g.padBottom, layout + ': bottom padding');
+  assert.strictEqual(el.style['--pb-gap'], g.gap, layout + ': gap');
+});
+
 /* ── Strip color (Phase 4B) ──────────────────────────────────────────── */
 assert.strictEqual(Strip.colors.length, 13, '13 curated colors');
 assert.strictEqual(Strip.colors[0].hex.toLowerCase(), '#ffffff', 'white is the default first color');
