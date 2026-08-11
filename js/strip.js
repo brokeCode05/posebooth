@@ -40,12 +40,19 @@
     return c.width + ' / ' + c.height;
   }
 
-  // Build the strip: exactly four <img> in DOM order (photo 1..4), one per
-  // captured photo. The container carries data-layout so the stylesheet
-  // arranges them (row, column, 2×2), and an inline aspect-ratio matching
-  // the master canvas so the preview keeps the exact print proportions.
-  // Images use object-fit: cover on a fixed 4:3 frame, so nothing is
-  // stretched or distorted.
+  // Build the strip: exactly four photos in DOM order (photo 1..4), each
+  // wrapped in a .photo-cell — an overflow:hidden clip container sized
+  // exactly to the photo. The container carries data-layout so the
+  // stylesheet arranges the cells (row, column, 2×2), and an inline
+  // aspect-ratio matching the master canvas so the preview keeps the
+  // exact print proportions. Images use object-fit: cover on a fixed 4:3
+  // frame, so nothing is stretched or distorted.
+  //
+  // The cell exists to keep photo effects (film grain, soft glow) inside
+  // the photo rectangle: the effects are applied to the <img>, and the
+  // cell's overflow:hidden clips ANY filter output back to the photo —
+  // nothing can ever paint onto the strip background, frame, decorations
+  // or margins, regardless of strip color, theme, filter or layout.
   function renderPreview(container, layout, photos) {
     if (!container) return;
     var taken = (photos || []).slice(0, PHOTO_LIMIT);
@@ -53,10 +60,13 @@
     container.style.aspectRatio = canvasRatio(layout);
     container.innerHTML = '';
     taken.forEach(function (src, i) {
+      var cell = document.createElement('span');
+      cell.className = 'photo-cell';
       var img = document.createElement('img');
       img.src = src;
       img.alt = 'Photo ' + (i + 1) + ' of ' + PHOTO_LIMIT;
-      container.appendChild(img);
+      cell.appendChild(img);
+      container.appendChild(cell);
     });
   }
 
@@ -496,7 +506,7 @@
   }
 
   root.Strip = {
-    version: '4.12.1',
+    version: '4.13.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,

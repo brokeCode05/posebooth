@@ -53,6 +53,18 @@ global.document = {
 
 var Strip = require('../js/strip.js');
 
+// Photos render inside .photo-cell clip wrappers — one cell per photo,
+// sized exactly to the photo. The cell's overflow:hidden is what keeps
+// effects (grain/glow) inside the photo rectangle.
+function photoCells(el) {
+  return el.children.filter(function (c) {
+    return String(c.className || '').split(/\s+/).indexOf('photo-cell') !== -1;
+  });
+}
+function photoImgs(el) {
+  return photoCells(el).map(function (c) { return c.children[0]; });
+}
+
 /* ── Layout rendering (Phase 4A) ─────────────────────────────────────── */
 var photos = ['data:photo1', 'data:photo2', 'data:photo3', 'data:photo4'];
 var RATIOS = {
@@ -67,21 +79,27 @@ var RATIOS = {
 
   assert.strictEqual(el.attrs['data-layout'], layout, layout + ': layout applied');
   assert.strictEqual(el.style.aspectRatio, RATIOS[layout], layout + ': master canvas ratio applied');
-  assert.strictEqual(el.children.length, 4, layout + ': exactly 4 photos');
+  assert.strictEqual(photoCells(el).length, 4, layout + ': exactly 4 photos in clip cells');
+  assert.ok(
+    photoCells(el).every(function (c) {
+      return c.children.length === 1 && c.children[0].tagName === 'img';
+    }),
+    layout + ': each photo-cell wraps exactly one img'
+  );
   assert.deepStrictEqual(
-    el.children.map(function (c) { return c.src; }),
+    photoImgs(el).map(function (c) { return c.src; }),
     photos,
     layout + ': photos 1..4 in order, none duplicated, none missing'
   );
   assert.ok(
-    el.children.every(function (c) { return /^Photo [1-4] of 4$/.test(c.alt); }),
+    photoImgs(el).every(function (c) { return /^Photo [1-4] of 4$/.test(c.alt); }),
     layout + ': numbered photo alts, no pose guides'
   );
 });
 
 var capped = new FakeEl('div');
 Strip.renderPreview(capped, 'grid', ['a', 'b', 'c', 'd', 'e']);
-assert.strictEqual(capped.children.length, 4, 'caps at 4');
+assert.strictEqual(photoCells(capped).length, 4, 'caps at 4');
 
 assert.strictEqual(Strip.layoutKey('diagonal'), 'vertical', 'unknown layout -> vertical');
 assert.strictEqual(Strip.layoutKey(undefined), 'vertical', 'missing layout -> vertical');
@@ -143,11 +161,7 @@ Strip.renderPreview(themed, 'vertical', photos);
 Strip.applyTheme(themed, 'cute');
 assert.strictEqual(themed.attrs['data-theme'], 'cute', 'applyTheme stamps data-theme');
 assert.strictEqual(themed.style.backgroundColor, '#f6d9de', 'theme never touches the color');
-assert.strictEqual(
-  themed.children.filter(function (c) { return c.tagName === 'img'; }).length,
-  4,
-  'theme never touches the photos'
-);
+assert.strictEqual(photoImgs(themed).length, 4, 'theme never touches the photos');
 assert.strictEqual(themed.querySelectorAll('.pd-layer').length, 1, 'cute injects its tiny dot accents');
 
 // Re-applying a theme swaps the decoration instead of piling it up.
@@ -261,11 +275,7 @@ assert.strictEqual(
 );
 assert.strictEqual(filtered.attrs['data-theme'], 'retro', 'filter never touches the theme');
 assert.strictEqual(filtered.style.backgroundColor, '#f6d9de', 'filter never touches the color');
-assert.strictEqual(
-  filtered.children.filter(function (c) { return c.tagName === 'img'; }).length,
-  4,
-  'filter never touches the photos'
-);
+assert.strictEqual(photoImgs(filtered).length, 4, 'filter never touches the photos');
 
 // Switching filters replaces the previous one, and Original restores the
 // base appearance exactly.
@@ -362,13 +372,9 @@ assert.ok(
   /^\d{2} [A-Z]{3} '\d{2}$/.test(dateEls[0].textContent),
   "date text is a readable DD MMM 'YY"
 );
-assert.strictEqual(
-  dated.children.filter(function (c) { return c.tagName === 'img'; }).length,
-  4,
-  'the date never touches the four photos'
-);
+assert.strictEqual(photoImgs(dated).length, 4, 'the date never touches the four photos');
 assert.deepStrictEqual(
-  dated.children.filter(function (c) { return c.tagName === 'img'; }).map(function (c) { return c.src; }),
+  photoImgs(dated).map(function (c) { return c.src; }),
   photos,
   'photo order is preserved with the date on'
 );
@@ -427,5 +433,14 @@ assert.ok(
   /<filter id="pb-grain" x="0%" y="0%" width="100%" height="100%"/.test(html),
   'grain filter is region-clipped to the photo bounds'
 );
+
+// 4. The .photo-cell wrapper is the hard clip enforcement point: even if a
+//    browser ignores the SVG filter region, overflow:hidden on the cell
+//    clips all effect output to the exact photo rectangle — so effects can
+//    never reach the strip background, frame, decorations or margins.
+var cellRule = css.match(/\.strip-preview \.photo-cell\s*\{([^}]*)\}/);
+assert.ok(cellRule, '.photo-cell clip rule exists');
+assert.ok(/overflow:\s*hidden/.test(cellRule[1]), '.photo-cell clips effect output to the photo');
+assert.ok(/position:\s*relative/.test(cellRule[1]), '.photo-cell anchors the photo cell');
 
 console.log('strip layout + color + theme + filter tests passed ✓');
