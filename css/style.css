@@ -1840,18 +1840,15 @@ a {
 }
 
 /* ==========================================================================
-   Phase 4C — Strip themes (decorative layer on top of color + layout)
+   Phase 4C — Strip themes (frame/style layer on top of color + layout)
 
    COLOR = base/background (inline backgroundColor from Phase 4B).
-   THEME = visual identity: borders, accents and decorative elements applied
-   via the data-theme attribute PLUS a .pd-layer of absolutely-placed
-   decorative shapes injected by the renderer. A theme never touches photos,
-   layout or color — it only paints the frame space around them.
+   THEME = frame/style: a simple border treatment, plus tiny corner dots
+   on a couple of themes, applied via the data-theme attribute.
 
-   Every decoration is pure geometric CSS, sized in em against the
-   .pd-layer font-size, so it adapts to all three layouts (2×6, 6×2, 6×8)
-   and scales down inside the mini theme previews. Decorations live in the
-   margins — never over faces.
+   The default themes are CLEAN STARTER TEMPLATES. No wordmarks, no dates,
+   no stickers, no decorative text — so there is nothing to rotate or mis-
+   align. A theme never touches photos, layout or color.
    ========================================================================== */
 
 /* ── Decorative layer (shared) ────────────────────────────────────────── */
@@ -1866,8 +1863,8 @@ a {
 }
 
 /* Position the accents inside the frame margins. Percentages adapt to
-   every layout: the tall strips get top/bottom room, the wide 6×2 strip
-   keeps them in its colour bands. */
+   every layout; only tiny orientation-neutral dots are used, so nothing
+   can be rotated, flipped or end up misplaced. */
 .pd {
   position: absolute;
   line-height: 1;
@@ -1877,74 +1874,6 @@ a {
 .pd.tr { top: 4%; right: 4%; }
 .pd.bl { bottom: 5%; left: 4%; }
 .pd.br { bottom: 5%; right: 4%; }
-.pd.tc { top: 3%; left: 50%; transform: translateX(-50%); }
-.pd.bc { bottom: 4%; left: 50%; transform: translateX(-50%); }
-.pd.ml { top: 50%; left: 2.5%; transform: translateY(-50%); }
-.pd.mr { top: 50%; right: 2.5%; transform: translateY(-50%); }
-
-/* Slightly larger accents on the roomier prints */
-.strip-preview[data-layout="horizontal"] .pd-layer {
-  font-size: 9px;
-}
-
-.strip-preview[data-layout="grid"] .pd-layer {
-  font-size: 8px;
-}
-
-/* Small hand-drawn variation so repeated shapes don't look stamped */
-.pd.tl.pd-heart { transform: rotate(-45deg); }
-.pd.tr.pd-star { transform: rotate(12deg); }
-.pd.br.pd-heart { transform: rotate(-45deg) scale(0.72); }
-.pd.bl.pd-heart { transform: rotate(-24deg) scale(0.85); }
-
-/* Heart — two circles on a rotated square */
-.pd-heart {
-  width: 1.7em;
-  height: 1.7em;
-  background: currentColor;
-  transform: rotate(-45deg);
-}
-
-.pd-heart::before,
-.pd-heart::after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: inherit;
-}
-
-.pd-heart::before { top: -50%; left: 0; }
-.pd-heart::after { top: 0; left: -50%; }
-
-/* Four-point sparkle star */
-.pd-star {
-  width: 1.3em;
-  height: 1.3em;
-  background: currentColor;
-  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
-}
-
-/* Glossy bubble with a little highlight */
-.pd-bubble {
-  width: 1.9em;
-  height: 1.9em;
-  border-radius: 50%;
-  border: 0.18em solid currentColor;
-}
-
-.pd-bubble::after {
-  content: '';
-  position: absolute;
-  top: 16%;
-  left: 20%;
-  width: 0.4em;
-  height: 0.4em;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.5;
-}
 
 /* Tiny dot */
 .pd-dot {
@@ -1955,102 +1884,11 @@ a {
   opacity: 0.7;
 }
 
-/* Hand-drawn smile arc */
-.pd-smile {
-  width: 1.9em;
-  height: 0.95em;
-  border-bottom: 0.2em solid currentColor;
-  border-radius: 50%;
-  transform: rotate(-6deg);
-}
+/* ── Theme identities (clean starter templates) ───────────────────────── */
 
-/* Cross sparkle (Y2K glint) */
-.pd-glint {
-  width: 1.1em;
-  height: 0.2em;
-  background: currentColor;
-}
+/* minimal (default) — clean thin frame, nothing else. */
 
-.pd-glint::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: currentColor;
-  transform: rotate(90deg);
-}
-
-/* Soft cloud — a pill with two bumps */
-.pd-cloud {
-  width: 3.4em;
-  height: 1.7em;
-  border-radius: 1.7em;
-  background: currentColor;
-  opacity: 0.9;
-}
-
-.pd-cloud::before,
-.pd-cloud::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.pd-cloud::before { width: 1.7em; height: 1.7em; top: -0.85em; left: 0.55em; }
-.pd-cloud::after { width: 1.2em; height: 1.2em; top: -0.45em; left: 1.9em; }
-
-/* Small blossom */
-.pd-flower {
-  width: 1.8em;
-  height: 1.8em;
-  background: currentColor;
-  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
-}
-
-/* Wordmark */
-.pd-wordmark {
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: 2.2em;
-  letter-spacing: 0.42em;
-  text-indent: 0.42em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: currentColor;
-  opacity: 0.85;
-}
-
-/* Date stamp (retro) */
-.pd-stamp {
-  font-family: var(--font-mono);
-  font-size: 1.6em;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  padding: 0.3em 0.55em;
-  border: 0.15em solid currentColor;
-  border-radius: 0.3em;
-  transform: rotate(-5deg);
-  opacity: 0.85;
-}
-
-/* ── Theme identities ─────────────────────────────────────────────────── */
-
-/* minimal (default) — clean and restrained: thin frame, a tiny mono
-   wordmark and four corner dots. */
-.strip-preview[data-theme="minimal"] .pd-layer {
-  color: var(--ink-faint);
-}
-
-.strip-preview[data-theme="minimal"] .pd-wordmark {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: 1.6em;
-  letter-spacing: 0.34em;
-  opacity: 0.6;
-}
-
-/* classic — a real photobooth print: solid dark frame, cut guide, and the
-   brand running up the left edge. */
+/* classic — traditional photobooth print: solid dark frame + cut guide. */
 .strip-preview[data-theme="classic"] {
   border: 3px solid rgba(0, 0, 0, 0.82);
   box-shadow:
@@ -2058,25 +1896,12 @@ a {
     inset 0 0 0 6px rgba(255, 255, 255, 0.5);
 }
 
-.strip-preview[data-theme="classic"] .pd-layer {
-  color: rgba(0, 0, 0, 0.78);
-}
-
-.strip-preview[data-theme="classic"] .pd-wordmark {
-  font-family: "Arial", "Helvetica Neue", "Segoe UI", sans-serif;
-  font-weight: 900;
-  font-size: 1.6em;
-  letter-spacing: 0.42em;
-  writing-mode: vertical-rl;
-  opacity: 0.95;
-}
-
-/* cute — fun and playful: polka-dot backing, rounded photos, hearts, a
-   star and a smile doodle. */
+/* cute — faint polka-dot backing in the margins, rounded photos and four
+   tiny corner dots. */
 .strip-preview[data-theme="cute"] {
   border: 2px solid rgba(255, 255, 255, 0.92);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
-  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1.4px, transparent 1.5px);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1.2px, transparent 1.3px);
   background-size: 16px 16px;
 }
 
@@ -2085,25 +1910,16 @@ a {
 }
 
 .strip-preview[data-theme="cute"] .pd-layer {
-  color: #e76d85;
+  color: rgba(0, 0, 0, 0.25);
 }
 
-.strip-preview[data-theme="cute"] .pd-star {
-  color: #f0a94f;
-}
-
-.strip-preview[data-theme="cute"] .pd-smile {
-  color: #8b9bb4;
-}
-
-/* y2k — glossy early-2000s digital: chrome band, diagonal streak, bubbles,
-   sparkles and an italic chrome wordmark up the right edge. */
+/* y2k — restrained chrome band border + faint diagonal streak + a tiny
+   corner sparkle. */
 .strip-preview[data-theme="y2k"] {
   border: 1px solid rgba(0, 0, 0, 0.18);
   box-shadow:
     0 0 0 3px rgba(255, 255, 255, 0.85),
-    0 0 0 4px rgba(0, 0, 0, 0.12),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    0 0 0 4px rgba(0, 0, 0, 0.12);
 }
 
 .strip-preview[data-theme="y2k"]::before {
@@ -2112,9 +1928,9 @@ a {
   inset: 0;
   background: linear-gradient(
     115deg,
-    rgba(255, 255, 255, 0) 34%,
-    rgba(255, 255, 255, 0.18) 47%,
-    rgba(255, 255, 255, 0) 60%
+    rgba(255, 255, 255, 0) 38%,
+    rgba(255, 255, 255, 0.12) 48%,
+    rgba(255, 255, 255, 0) 58%
   );
   pointer-events: none;
 }
@@ -2124,79 +1940,29 @@ a {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 7px;
-  height: 7px;
-  background: rgba(255, 255, 255, 0.92);
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.9);
   transform: rotate(45deg);
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
   pointer-events: none;
 }
 
-.strip-preview[data-theme="y2k"] .pd-layer {
-  color: #ff5f8f;
-}
-
-.strip-preview[data-theme="y2k"] .pd-star {
-  color: #4fc8ff;
-}
-
-.strip-preview[data-theme="y2k"] .pd-bubble {
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.strip-preview[data-theme="y2k"] .pd-wordmark {
-  font-family: "Arial Black", "Franklin Gothic Medium", "Avenir Next", sans-serif;
-  font-weight: 800;
-  font-size: 1.6em;
-  font-style: italic;
-  letter-spacing: 0.2em;
-  writing-mode: vertical-rl;
-  color: transparent;
-  background: linear-gradient(180deg, #ff5f8f, #b06bff 55%, #4fc8ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  opacity: 0.95;
-}
-
-/* retro — analog film print: double frame, subtle grain in the frame,
-   a serif wordmark and a date stamp up the left edge. */
+/* retro — vintage film print: double frame + faint grain in the margins. */
 .strip-preview[data-theme="retro"] {
-  border: 4px double rgba(0, 0, 0, 0.32);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+  border: 4px double rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
   background-image:
-    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.022) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.02) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.018) 0 1px, transparent 1px 3px);
 }
 
-.strip-preview[data-theme="retro"] .pd-layer {
-  color: #b0582e;
-}
-
-.strip-preview[data-theme="retro"] .pd-wordmark {
-  font-family: Georgia, 'Times New Roman', 'Songti SC', serif;
-  font-weight: 600;
-  font-size: 1.8em;
-  letter-spacing: 0.22em;
-  opacity: 0.8;
-}
-
-.strip-preview[data-theme="retro"] .pd-stamp {
-  writing-mode: vertical-rl;
-  font-size: 1.3em;
-  letter-spacing: 0.16em;
-  padding: 0.25em 0.4em;
-  color: #a63d2b;
-  transform: none;
-}
-
-/* pastel — soft and dreamy: rounded frame, clouds and blossoms in the
-   margins. */
+/* pastel — soft rounded frame + gentle shadow + four tiny corner dots. */
 .strip-preview[data-theme="pastel"] {
   border: 2px solid rgba(255, 255, 255, 0.95);
   border-radius: 16px;
   box-shadow:
     0 0 0 3px rgba(0, 0, 0, 0.05),
-    0 10px 30px rgba(0, 0, 0, 0.12);
+    0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .strip-preview[data-theme="pastel"] img {
@@ -2204,18 +1970,10 @@ a {
 }
 
 .strip-preview[data-theme="pastel"] .pd-layer {
-  color: #a9c7e3;
+  color: rgba(0, 0, 0, 0.16);
 }
 
-.strip-preview[data-theme="pastel"] .pd-flower {
-  color: #e9a9bf;
-}
-
-.strip-preview[data-theme="pastel"] .pd-cloud.tl {
-  transform: scale(0.72);
-}
-
-/* ── Theme picker: mini strip previews that reuse the real theme CSS ──── */
+/* ── Theme picker ─────────────────────────────────────────────────────── */
 
 .theme-swatches {
   display: flex;
@@ -2226,31 +1984,30 @@ a {
   margin: 0 auto;
 }
 
+/* Uniform cards: mini preview on top, readable name below, obvious
+   selected state. */
 .theme-option {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background: transparent;
-  border: 1px solid transparent;
+  gap: 7px;
+  min-width: 62px;
+  padding: 10px 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 10px;
   cursor: pointer;
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
 }
 
 .theme-option:hover {
+  border-color: var(--line-strong);
   background: var(--surface-2);
 }
 
 .theme-option.is-selected {
-  border-color: var(--ink);
-  color: var(--ink);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .theme-option:focus-visible {
@@ -2258,55 +2015,22 @@ a {
   outline-offset: 2px;
 }
 
-.theme-option .theme-name {
-  font-size: 10px;
-}
-
-/* Each theme card previews its typography — the label uses the theme's own
-   font family, so the picker (below the colour panel) shows at a glance
-   what the strip wordmark will read like. */
-.theme-option[data-theme="minimal"] .theme-name {
-  font-family: var(--font-mono);
-  font-weight: 500;
-}
-
-.theme-option[data-theme="classic"] .theme-name {
-  font-family: "Arial", "Helvetica Neue", "Segoe UI", sans-serif;
-  font-weight: 800;
-}
-
-.theme-option[data-theme="cute"] .theme-name {
-  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", "Segoe Print", cursive;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-}
-
-.theme-option[data-theme="y2k"] .theme-name {
-  font-family: "Arial Black", "Franklin Gothic Medium", "Avenir Next", sans-serif;
-  font-style: italic;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-
-.theme-option[data-theme="retro"] .theme-name {
-  font-family: Georgia, "Times New Roman", serif;
+.theme-name {
+  font-family: var(--font-sans);
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
 }
 
-.theme-option[data-theme="pastel"] .theme-name {
-  font-family: "Trebuchet MS", "Verdana", "Segoe UI", sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
+.theme-option.is-selected .theme-name {
+  color: var(--ink);
 }
 
 /* Mini mock of the strip. Reuses the .strip-preview + [data-theme] rules
-   (later in the file wins over the base) and mirrors the SELECTED layout
-   via the same data-layout mechanism the real strip uses — so each theme
-   card shows how that theme looks in the user's current layout. The
-   injected .pd decorations scale down with the .pd-layer font-size. */
+   and mirrors the SELECTED layout via the same data-layout mechanism the
+   real strip uses, so the thumbnails always show what the theme looks
+   like in the user's current layout. */
 .theme-demo,
 .theme-demo[data-layout="vertical"] {
   width: 30px;
@@ -2360,63 +2084,18 @@ a {
   border-radius: 3px;
 }
 
-/* Shrink the injected decorations inside the mini previews */
-.theme-demo .pd-layer {
-  font-size: 2.6px;
-}
-
-.theme-demo .pd-wordmark {
-  font-size: 1.6em;
-  letter-spacing: 0.12em;
-  text-indent: 0.12em;
-}
-
-.theme-demo[data-theme="y2k"]::after {
-  top: 3px;
-  right: 3px;
-  width: 4px;
-  height: 4px;
-}
-
-/* Per-layout placement tweaks — keep decorations inside the frame margins.
-   Equal specificity to the theme rules but later in the file, so these win
-   for the real strip; the .theme-demo rules below re-tuck the mini cards. */
-
-/* Vertical (2×6): slim 3%/5% margins, so pull the corner accents and the
-   top wordmark in tight against the frame edge. */
+/* Vertical (2×6): slim margins — keep the corner dots tight against the
+   frame edge. */
 .strip-preview[data-layout="vertical"] .pd.tl { top: 1.5%; left: 2%; }
 .strip-preview[data-layout="vertical"] .pd.tr { top: 1.5%; right: 2%; }
 .strip-preview[data-layout="vertical"] .pd.bl { bottom: 2%; left: 2%; }
 .strip-preview[data-layout="vertical"] .pd.br { bottom: 2%; right: 2%; }
-.strip-preview[data-layout="vertical"] .pd.tc { top: 1.5%; }
 
-/* Side wordmarks hug the edge on the tall prints… */
-.strip-preview[data-layout="vertical"] .pd.ml { left: 1.5%; }
-.strip-preview[data-layout="vertical"] .pd.mr { right: 1.5%; }
-
-/* …but the 6×2 strip has almost no side margin, so vertical brand text
-   would run straight down the middle of the photos. Read it horizontally
-   in the bottom colour band instead — classic photobooth branding. */
-.strip-preview[data-layout="horizontal"] .pd.ml,
-.strip-preview[data-layout="horizontal"] .pd.mr {
-  writing-mode: horizontal-tb;
-  top: auto;
-  bottom: 4%;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
+/* Mini previews: tuck the tiny dots inside the cards. */
+.theme-demo .pd-layer {
+  font-size: 2.6px;
 }
 
-/* Grid (6×8): keep the side wordmarks off the photo block. */
-.strip-preview[data-layout="grid"] .pd.ml { left: 1%; }
-.strip-preview[data-layout="grid"] .pd.mr { right: 1%; }
-
-/* Classic's dark wordmark stays legible on dark strip colours. */
-.strip-preview[data-theme="classic"] .pd-wordmark {
-  text-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
-}
-
-/* Mini previews: re-tuck the corner accents inside the tiny cards. */
 .theme-demo .pd.tl,
 .theme-demo .pd.tr {
   top: 6%;
@@ -2431,3 +2110,9 @@ a {
   right: 10%;
 }
 
+.theme-demo[data-theme="y2k"]::after {
+  top: 3px;
+  right: 3px;
+  width: 4px;
+  height: 4px;
+}

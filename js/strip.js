@@ -172,61 +172,36 @@
     return 'minimal';
   }
 
-  // Decorative elements injected into the strip frame for each theme. Each
-  // entry is [type, position, text?]: the type maps to a .pd-<type> CSS
-  // shape (hearts, stars, bubbles, clouds, wordmarks…), the position
-  // (tl/tr/bl/br/tc/bc/ml/mr) places it inside the frame margins, and text
-  // supplies wordmark/stamp copy. All decorations are pure geometric CSS,
-  // sized in em against the .pd-layer font-size, so they adapt to every
-  // layout and scale down inside the mini theme previews — no per-layout
-  // artwork, and nothing ever covers a face.
+  // Accents injected into the strip frame for each theme. The default
+  // themes are clean starter templates — the only injected accents are tiny
+  // orientation-neutral corner dots (cute, pastel); everything else is a
+  // frame/border treatment drawn by CSS. There is deliberately NO text on
+  // the default strips: no wordmark, no date.
+  //
+  // This structure is what later custom themes (and an optional SHOW DATE
+  // element) plug into — e.g. add ['date', 'bc'] here plus the matching
+  // .pd-date CSS when a setting enables it. Date stays OFF by default.
   var DECOR = {
-    minimal: [
-      ['wordmark', 'tc', 'POSEBOOTH'],
+    minimal: [],
+    classic: [],
+    cute: [
       ['dot', 'tl'],
       ['dot', 'tr'],
       ['dot', 'bl'],
       ['dot', 'br']
     ],
-    classic: [['wordmark', 'ml', 'POSEBOOTH']],
-    cute: [
-      ['heart', 'tl'],
-      ['star', 'tr'],
-      ['smile', 'bl'],
-      ['heart', 'br']
-    ],
-    y2k: [
-      ['star', 'tl'],
-      ['bubble', 'tr'],
-      ['bubble', 'bl'],
-      ['glint', 'br'],
-      ['wordmark', 'mr', 'POSEBOOTH']
-    ],
-    retro: [
-      ['wordmark', 'tc', 'POSEBOOTH'],
-      ['stamp', 'ml']
-    ],
+    y2k: [],
+    retro: [],
     pastel: [
-      ['cloud', 'tr'],
-      ['cloud', 'tl'],
-      ['flower', 'bl'],
-      ['flower', 'br'],
-      ['dot', 'tc'],
-      ['dot', 'bc']
+      ['dot', 'tl'],
+      ['dot', 'tr'],
+      ['dot', 'bl'],
+      ['dot', 'br']
     ]
   };
 
-  // A little date stamp, printed like a film-lab mark (e.g. AUG 11 '26).
-  function stampText() {
-    var months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    var d = new Date();
-    var day = String(d.getDate());
-    if (day.length < 2) day = '0' + day;
-    return months[d.getMonth()] + ' ' + day + " '" + String(d.getFullYear()).slice(-2);
-  }
-
   // (Re)build the decorative layer for a theme: remove any previous layer
-  // and inject the theme's shapes into the strip frame. Pure decoration —
+  // and inject the theme's accents into the strip frame. Pure decoration —
   // pointer-events none, aria-hidden, and it never touches photos, layout
   // or color.
   function applyDecor(container, key) {
@@ -243,8 +218,6 @@
     specs.forEach(function (s) {
       var el = document.createElement('span');
       el.className = 'pd pd-' + s[0] + ' ' + s[1];
-      if (s[0] === 'wordmark') el.textContent = s[2] || 'POSEBOOTH';
-      else if (s[0] === 'stamp') el.textContent = stampText();
       layer.appendChild(el);
     });
     container.appendChild(layer);
@@ -342,7 +315,7 @@
   }
 
   root.Strip = {
-    version: '4.8.0',
+    version: '4.9.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,

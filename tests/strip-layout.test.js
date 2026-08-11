@@ -134,64 +134,59 @@ assert.deepStrictEqual(picked, [swatches.children[1].getAttribute('data-hex')], 
 assert.strictEqual(Strip.themes.length, 6, '6 curated themes');
 assert.strictEqual(Strip.themes[0].key, 'minimal', 'minimal is the default first theme');
 
-// applyTheme stamps data-theme and injects the decorative layer — photos
-// and color stay untouched.
+// applyTheme stamps data-theme and injects accents only where the theme
+// has them (cute/pastel corner dots) — photos and color stay untouched.
 var themed = new FakeEl('div');
 Strip.setColor(themed, '#f6d9de');
 Strip.renderPreview(themed, 'vertical', photos);
-Strip.applyTheme(themed, 'y2k');
-assert.strictEqual(themed.attrs['data-theme'], 'y2k', 'applyTheme stamps data-theme');
+Strip.applyTheme(themed, 'cute');
+assert.strictEqual(themed.attrs['data-theme'], 'cute', 'applyTheme stamps data-theme');
 assert.strictEqual(themed.style.backgroundColor, '#f6d9de', 'theme never touches the color');
 assert.strictEqual(
   themed.children.filter(function (c) { return c.tagName === 'img'; }).length,
   4,
   'theme never touches the photos'
 );
-assert.strictEqual(themed.querySelectorAll('.pd-layer').length, 1, 'decor layer injected');
+assert.strictEqual(themed.querySelectorAll('.pd-layer').length, 1, 'cute injects its tiny dot accents');
 
 // Re-applying a theme swaps the decoration instead of piling it up.
+Strip.applyTheme(themed, 'retro');
+assert.strictEqual(themed.attrs['data-theme'], 'retro', 'theme swaps');
+assert.strictEqual(themed.querySelectorAll('.pd-layer').length, 0, 'retro has no injected accents (frame only)');
+
 Strip.applyTheme(themed, 'cute');
-assert.strictEqual(themed.attrs['data-theme'], 'cute', 'theme swaps');
+Strip.applyTheme(themed, 'cute');
 assert.strictEqual(themed.querySelectorAll('.pd-layer').length, 1, 'no duplicate decor layers');
 
 Strip.applyTheme(themed, 'not-a-theme');
 assert.strictEqual(themed.attrs['data-theme'], 'minimal', 'unknown theme falls back to minimal');
+assert.strictEqual(themed.querySelectorAll('.pd-layer').length, 0, 'minimal has no injected accents');
 assert.strictEqual(Strip.themeKey(undefined), 'minimal', 'missing theme -> minimal');
 
-// Each theme brings its own decorative shapes (its visual identity).
+// The default themes are clean starter templates: no wordmarks, no date
+// stamps, no stickers — only tiny orientation-neutral corner dots.
 function decorKinds(el) {
   var layer = el.querySelectorAll('.pd-layer')[0];
   return layer ? layer.children.map(function (c) { return c.className; }) : [];
 }
 
-var minimal = new FakeEl('div');
-Strip.applyTheme(minimal, 'minimal');
-var mKinds = decorKinds(minimal);
-assert.ok(mKinds.some(function (c) { return /pd-wordmark/.test(c); }), 'minimal has a wordmark');
-assert.ok(mKinds.some(function (c) { return /pd-dot/.test(c); }), 'minimal has corner dots');
-
-var cute = new FakeEl('div');
-Strip.applyTheme(cute, 'cute');
-assert.ok(decorKinds(cute).some(function (c) { return /pd-heart/.test(c); }), 'cute has hearts');
-
-var classic = new FakeEl('div');
-Strip.applyTheme(classic, 'classic');
-assert.strictEqual(
-  classic.querySelectorAll('.pd-layer')[0].children[0].textContent,
-  'POSEBOOTH',
-  'classic wordmark copy'
-);
-
-var retro = new FakeEl('div');
-Strip.applyTheme(retro, 'retro');
-var retroStamps = retro.querySelectorAll('.pd-layer')[0].children.filter(function (c) {
-  return /pd-stamp/.test(c.className);
+['cute', 'pastel'].forEach(function (t) {
+  var el = new FakeEl('div');
+  Strip.applyTheme(el, t);
+  var kinds = decorKinds(el);
+  assert.strictEqual(kinds.length, 4, t + ' has exactly 4 tiny corner dots');
+  assert.ok(
+    kinds.every(function (c) { return /pd-dot/.test(c); }),
+    t + ' accents are dots only (no stickers, no text)'
+  );
 });
-assert.strictEqual(retroStamps.length, 1, 'retro has a date stamp');
-assert.ok(
-  /[A-Z]{3} \d{2} '\d{2}/.test(retroStamps[0].textContent),
-  'stamp prints a film-lab date (e.g. AUG 11 \'26)'
-);
+
+// The rest are pure frame/border treatments — nothing injected, no text.
+['minimal', 'classic', 'y2k', 'retro'].forEach(function (t) {
+  var el = new FakeEl('div');
+  Strip.applyTheme(el, t);
+  assert.strictEqual(el.querySelectorAll('.pd-layer').length, 0, t + ' keeps the strip clean');
+});
 
 // buildThemeSwatches: 6 buttons, each with a 4-cell mini demo + label.
 var themeSwatches = new FakeEl('div');
@@ -211,7 +206,10 @@ assert.strictEqual(
   4,
   'demo preview shows 4 photo cells'
 );
-assert.strictEqual(demo.querySelectorAll('.pd-layer').length, 1, 'demo preview shows the theme decoration');
+assert.strictEqual(demo.querySelectorAll('.pd-layer').length, 0, 'y2k demo is clean (frame only)');
+
+var cuteDemo = themeSwatches.children[2].children[0];
+assert.strictEqual(cuteDemo.querySelectorAll('.pd-layer').length, 1, 'cute demo shows its dot accents');
 
 // Click Y2K — selection moves + onPick fires.
 pickedThemes.length = 0;
