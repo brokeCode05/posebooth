@@ -155,6 +155,23 @@ assert.strictEqual(blush.getAttribute('aria-checked'), 'true', 'blush selected a
 assert.strictEqual(swatches.children[0].getAttribute('aria-checked'), 'false', 'white deselected');
 assert.deepStrictEqual(picked, ['#f7cdd4'], 'onPick receives the picked hex');
 
+// Re-entering customize with a non-white stored colour must highlight the
+// right swatch (matched via data-hex, robust to browsers serializing
+// style.backgroundColor back as rgb(...)).
+var reentered = new FakeEl('div');
+Strip.buildColorSwatches(reentered, null, '#f7cdd4');
+assert.strictEqual(
+  reentered.children[2].getAttribute('aria-checked'), 'true',
+  'blush is selected when re-entering with it stored'
+);
+assert.strictEqual(reentered.children[0].getAttribute('aria-checked'), 'false', 'white is not selected');
+var reenteredDark = new FakeEl('div');
+Strip.buildColorSwatches(reenteredDark, null, '#45434a');
+assert.strictEqual(
+  reenteredDark.children[11].getAttribute('aria-checked'), 'true',
+  'charcoal is selected when re-entering with it stored'
+);
+
 // Arrow-key navigation moves selection to the next swatch.
 picked.length = 0;
 var first = swatches.children[0];

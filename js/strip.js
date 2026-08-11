@@ -149,11 +149,15 @@
       });
     }
 
-    // Mark the initial/current colour (default white).
+    // Mark the initial/current colour (default white). Match against the
+    // data-hex attribute, NOT style.backgroundColor: browsers serialize an
+    // inline background-color back as rgb(...), so comparing the raw hex
+    // against the serialized value would fail for every non-white colour
+    // (and silently fall back to the first swatch).
     var current = String(initialHex || '#ffffff').toLowerCase();
     var found = null;
     buttons.forEach(function (b) {
-      if (b.style.backgroundColor && b.style.backgroundColor.toLowerCase() === current) {
+      if (String(b.getAttribute('data-hex') || '').toLowerCase() === current) {
         found = b;
       }
     });
@@ -514,7 +518,7 @@
   }
 
   root.Strip = {
-    version: '4.14.0',
+    version: '4.14.1',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
