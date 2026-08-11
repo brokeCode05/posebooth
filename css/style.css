@@ -1818,13 +1818,14 @@ a {
   margin-bottom: 10px;
 }
 
-/* A row of circular color swatches, wrapping on narrow screens. */
+/* A row of circular color swatches, wrapping on narrow screens. The wider
+   cap lets the 13-color palette balance in two neat rows. */
 .swatches {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  max-width: 320px;
+  max-width: 420px;
   margin: 0 auto;
 }
 

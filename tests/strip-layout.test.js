@@ -114,33 +114,46 @@ assert.deepStrictEqual(Strip.canvas, {
 }, 'master canvas dimensions');
 
 /* ── Strip color (Phase 4B) ──────────────────────────────────────────── */
-assert.strictEqual(Strip.colors.length, 8, '8 curated colors');
+assert.strictEqual(Strip.colors.length, 13, '13 curated colors');
 assert.strictEqual(Strip.colors[0].hex.toLowerCase(), '#ffffff', 'white is the default first color');
+
+// Every palette color is unique — no near-duplicate pinks, blues or
+// grays — and the palette spans soft, bold and dark ranges.
+var hexes = Strip.colors.map(function (c) { return c.hex.toLowerCase(); });
+assert.strictEqual(new Set(hexes).size, 13, 'all 13 colors are visually distinct (unique hexes)');
+assert.ok(
+  Strip.colors.some(function (c) { return c.name === 'Black' || c.name === 'Charcoal'; }),
+  'palette includes dark colors'
+);
+assert.ok(
+  Strip.colors.some(function (c) { return c.name === 'Coral' || c.name === 'Cobalt' || c.name === 'Red'; }),
+  'palette includes bold colors'
+);
 
 // setColor applies the background inline without touching photos.
 var preview = new FakeEl('div');
-Strip.setColor(preview, '#f6d9de');
-assert.strictEqual(preview.style.backgroundColor, '#f6d9de', 'setColor applies the background');
+Strip.setColor(preview, '#f7cdd4');
+assert.strictEqual(preview.style.backgroundColor, '#f7cdd4', 'setColor applies the background');
 assert.strictEqual(preview.children.length, 0, 'setColor never touches the photos');
 
-// buildColorSwatches: 8 buttons, default white selected.
+// buildColorSwatches: 13 buttons, default white selected.
 var swatches = new FakeEl('div');
 var picked = [];
 Strip.buildColorSwatches(swatches, function (hex) { picked.push(hex); }, '#ffffff');
-assert.strictEqual(swatches.children.length, 8, '8 swatch buttons built');
+assert.strictEqual(swatches.children.length, 13, '13 swatch buttons built');
 assert.strictEqual(swatches.children[0].getAttribute('aria-checked'), 'true', 'default white is selected');
 assert.strictEqual(
   swatches.children[0].getAttribute('aria-label'), 'Strip color: White',
   'white swatch labelled'
 );
 
-// Click the pink swatch (index 3) — selection moves + onPick fires.
+// Click the Blush swatch (index 2) — selection moves + onPick fires.
 picked.length = 0;
-var pink = swatches.children[3];
-pink.events.click();
-assert.strictEqual(pink.getAttribute('aria-checked'), 'true', 'pink selected after click');
+var blush = swatches.children[2];
+blush.events.click();
+assert.strictEqual(blush.getAttribute('aria-checked'), 'true', 'blush selected after click');
 assert.strictEqual(swatches.children[0].getAttribute('aria-checked'), 'false', 'white deselected');
-assert.deepStrictEqual(picked, ['#f6d9de'], 'onPick receives the picked hex');
+assert.deepStrictEqual(picked, ['#f7cdd4'], 'onPick receives the picked hex');
 
 // Arrow-key navigation moves selection to the next swatch.
 picked.length = 0;

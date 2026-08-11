@@ -72,17 +72,25 @@
 
   // ── Phase 4B: strip background color ───────────────────────────────────
 
-  // Curated photobooth palette — white is the clean default. The photos
-  // themselves are never touched; only the strip backing changes.
+  // Curated photobooth palette — 13 distinct colors spanning soft, bold
+  // and dark ranges, so every swatch reads clearly next to its neighbours
+  // and every theme has an intentional companion. White stays the clean
+  // default. The photos themselves are never touched; only the strip
+  // backing changes.
   var STRIP_COLORS = [
     { name: 'White', hex: '#ffffff' },
-    { name: 'Black', hex: '#1a1917' },
     { name: 'Cream', hex: '#f5efe3' },
-    { name: 'Soft Pink', hex: '#f6d9de' },
-    { name: 'Light Blue', hex: '#d3e5f2' },
-    { name: 'Lavender', hex: '#e4dcf2' },
-    { name: 'Soft Yellow', hex: '#f7e9c2' },
-    { name: 'Soft Green', hex: '#dcead5' }
+    { name: 'Blush', hex: '#f7cdd4' },
+    { name: 'Peach', hex: '#ffe1cc' },
+    { name: 'Lavender', hex: '#e3d9f4' },
+    { name: 'Blue', hex: '#cfe3f5' },
+    { name: 'Mint', hex: '#d7f0e2' },
+    { name: 'Coral', hex: '#f2745f' },
+    { name: 'Red', hex: '#d9334a' },
+    { name: 'Cobalt', hex: '#2f5fd0' },
+    { name: 'Purple', hex: '#6441a5' },
+    { name: 'Charcoal', hex: '#45434a' },
+    { name: 'Black', hex: '#1a1917' }
   ];
 
   // Apply a strip background color to the preview container. Inline style
@@ -506,7 +514,7 @@
   }
 
   root.Strip = {
-    version: '4.13.1',
+    version: '4.14.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
