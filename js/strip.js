@@ -172,11 +172,92 @@
     return 'minimal';
   }
 
-  // Apply a theme to the strip container. Only the decorative layer changes
-  // (the data-theme attribute); photos, layout and color stay untouched.
+  // Decorative elements injected into the strip frame for each theme. Each
+  // entry is [type, position, text?]: the type maps to a .pd-<type> CSS
+  // shape (hearts, stars, bubbles, clouds, wordmarks…), the position
+  // (tl/tr/bl/br/tc/bc/ml/mr) places it inside the frame margins, and text
+  // supplies wordmark/stamp copy. All decorations are pure geometric CSS,
+  // sized in em against the .pd-layer font-size, so they adapt to every
+  // layout and scale down inside the mini theme previews — no per-layout
+  // artwork, and nothing ever covers a face.
+  var DECOR = {
+    minimal: [
+      ['wordmark', 'tc', 'POSEBOOTH'],
+      ['dot', 'tl'],
+      ['dot', 'tr'],
+      ['dot', 'bl'],
+      ['dot', 'br']
+    ],
+    classic: [['wordmark', 'ml', 'POSEBOOTH']],
+    cute: [
+      ['heart', 'tl'],
+      ['star', 'tr'],
+      ['smile', 'bl'],
+      ['heart', 'br']
+    ],
+    y2k: [
+      ['star', 'tl'],
+      ['bubble', 'tr'],
+      ['bubble', 'bl'],
+      ['glint', 'br'],
+      ['wordmark', 'mr', 'POSEBOOTH']
+    ],
+    retro: [
+      ['wordmark', 'tc', 'POSEBOOTH'],
+      ['stamp', 'ml']
+    ],
+    pastel: [
+      ['cloud', 'tr'],
+      ['cloud', 'tl'],
+      ['flower', 'bl'],
+      ['flower', 'br'],
+      ['dot', 'tc'],
+      ['dot', 'bc']
+    ]
+  };
+
+  // A little date stamp, printed like a film-lab mark (e.g. AUG 11 '26).
+  function stampText() {
+    var months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    var d = new Date();
+    var day = String(d.getDate());
+    if (day.length < 2) day = '0' + day;
+    return months[d.getMonth()] + ' ' + day + " '" + String(d.getFullYear()).slice(-2);
+  }
+
+  // (Re)build the decorative layer for a theme: remove any previous layer
+  // and inject the theme's shapes into the strip frame. Pure decoration —
+  // pointer-events none, aria-hidden, and it never touches photos, layout
+  // or color.
+  function applyDecor(container, key) {
+    if (!container) return;
+    if (container.querySelectorAll) {
+      var old = container.querySelectorAll('.pd-layer');
+      for (var i = 0; i < old.length; i++) container.removeChild(old[i]);
+    }
+    var specs = DECOR[key];
+    if (!specs || !specs.length) return;
+    var layer = document.createElement('span');
+    layer.className = 'pd-layer';
+    layer.setAttribute('aria-hidden', 'true');
+    specs.forEach(function (s) {
+      var el = document.createElement('span');
+      el.className = 'pd pd-' + s[0] + ' ' + s[1];
+      if (s[0] === 'wordmark') el.textContent = s[2] || 'POSEBOOTH';
+      else if (s[0] === 'stamp') el.textContent = stampText();
+      layer.appendChild(el);
+    });
+    container.appendChild(layer);
+  }
+
+  // Apply a theme to the strip container: stamps data-theme (the decorative
+  // CSS layer) and rebuilds the injected decorations. Photos, layout and
+  // color stay untouched.
   function applyTheme(container, key) {
     if (!container) return;
-    container.setAttribute('data-theme', themeKey(key));
+    var k = themeKey(key);
+    container.setAttribute('data-theme', k);
+    applyDecor(container, k);
   }
 
   // Build the visual theme picker. Each option shows a mini mock of the
@@ -210,6 +291,7 @@
         cell.setAttribute('aria-hidden', 'true');
         demo.appendChild(cell);
       }
+      applyDecor(demo, t.key);
       btn.appendChild(demo);
 
       var label = document.createElement('span');
@@ -260,7 +342,7 @@
   }
 
   root.Strip = {
-    version: '4.6.1',
+    version: '4.7.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
@@ -270,6 +352,7 @@
     buildColorSwatches: buildColorSwatches,
     themes: THEMES,
     themeKey: themeKey,
+    decor: DECOR,
     applyTheme: applyTheme,
     buildThemeSwatches: buildThemeSwatches
   };

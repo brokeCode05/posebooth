@@ -27,8 +27,24 @@ function FakeEl(tag) {
 FakeEl.prototype.setAttribute = function (k, v) { this.attrs[k] = v; };
 FakeEl.prototype.getAttribute = function (k) { return this.attrs[k]; };
 FakeEl.prototype.appendChild = function (c) { this.children.push(c); };
+FakeEl.prototype.removeChild = function (c) {
+  var i = this.children.indexOf(c);
+  if (i !== -1) this.children.splice(i, 1);
+};
 FakeEl.prototype.addEventListener = function (t, f) { this.events[t] = f; };
 FakeEl.prototype.focus = function () {};
+// Class selector lookups over the (shallow) fake DOM.
+FakeEl.prototype.querySelectorAll = function (sel) {
+  var cls = sel.charAt(0) === '.' ? sel.slice(1) : sel;
+  var out = [];
+  (function walk(node) {
+    node.children.forEach(function (c) {
+      if (String(c.className || '').split(/\s+/).indexOf(cls) !== -1) out.push(c);
+      walk(c);
+    });
+  })(this);
+  return out;
+};
 
 global.document = {
   createElement: function (tag) { return new FakeEl(tag); }
@@ -118,18 +134,64 @@ assert.deepStrictEqual(picked, [swatches.children[1].getAttribute('data-hex')], 
 assert.strictEqual(Strip.themes.length, 6, '6 curated themes');
 assert.strictEqual(Strip.themes[0].key, 'minimal', 'minimal is the default first theme');
 
-// applyTheme sets data-theme only — photos and color untouched.
+// applyTheme stamps data-theme and injects the decorative layer — photos
+// and color stay untouched.
 var themed = new FakeEl('div');
 Strip.setColor(themed, '#f6d9de');
 Strip.renderPreview(themed, 'vertical', photos);
 Strip.applyTheme(themed, 'y2k');
 assert.strictEqual(themed.attrs['data-theme'], 'y2k', 'applyTheme stamps data-theme');
 assert.strictEqual(themed.style.backgroundColor, '#f6d9de', 'theme never touches the color');
-assert.strictEqual(themed.children.length, 4, 'theme never touches the photos');
+assert.strictEqual(
+  themed.children.filter(function (c) { return c.tagName === 'img'; }).length,
+  4,
+  'theme never touches the photos'
+);
+assert.strictEqual(themed.querySelectorAll('.pd-layer').length, 1, 'decor layer injected');
+
+// Re-applying a theme swaps the decoration instead of piling it up.
+Strip.applyTheme(themed, 'cute');
+assert.strictEqual(themed.attrs['data-theme'], 'cute', 'theme swaps');
+assert.strictEqual(themed.querySelectorAll('.pd-layer').length, 1, 'no duplicate decor layers');
 
 Strip.applyTheme(themed, 'not-a-theme');
 assert.strictEqual(themed.attrs['data-theme'], 'minimal', 'unknown theme falls back to minimal');
 assert.strictEqual(Strip.themeKey(undefined), 'minimal', 'missing theme -> minimal');
+
+// Each theme brings its own decorative shapes (its visual identity).
+function decorKinds(el) {
+  var layer = el.querySelectorAll('.pd-layer')[0];
+  return layer ? layer.children.map(function (c) { return c.className; }) : [];
+}
+
+var minimal = new FakeEl('div');
+Strip.applyTheme(minimal, 'minimal');
+var mKinds = decorKinds(minimal);
+assert.ok(mKinds.some(function (c) { return /pd-wordmark/.test(c); }), 'minimal has a wordmark');
+assert.ok(mKinds.some(function (c) { return /pd-dot/.test(c); }), 'minimal has corner dots');
+
+var cute = new FakeEl('div');
+Strip.applyTheme(cute, 'cute');
+assert.ok(decorKinds(cute).some(function (c) { return /pd-heart/.test(c); }), 'cute has hearts');
+
+var classic = new FakeEl('div');
+Strip.applyTheme(classic, 'classic');
+assert.strictEqual(
+  classic.querySelectorAll('.pd-layer')[0].children[0].textContent,
+  'POSEBOOTH',
+  'classic wordmark copy'
+);
+
+var retro = new FakeEl('div');
+Strip.applyTheme(retro, 'retro');
+var retroStamps = retro.querySelectorAll('.pd-layer')[0].children.filter(function (c) {
+  return /pd-stamp/.test(c.className);
+});
+assert.strictEqual(retroStamps.length, 1, 'retro has a date stamp');
+assert.ok(
+  /[A-Z]{3} \d{2} '\d{2}/.test(retroStamps[0].textContent),
+  'stamp prints a film-lab date (e.g. AUG 11 \'26)'
+);
 
 // buildThemeSwatches: 6 buttons, each with a 4-cell mini demo + label.
 var themeSwatches = new FakeEl('div');
@@ -144,7 +206,12 @@ assert.strictEqual(
 );
 var demo = themeSwatches.children[3].children[0];
 assert.strictEqual(demo.attrs['data-theme'], 'y2k', 'demo preview carries the theme');
-assert.strictEqual(demo.children.length, 4, 'demo preview shows 4 photo cells');
+assert.strictEqual(
+  demo.children.filter(function (c) { return c.tagName === 'i'; }).length,
+  4,
+  'demo preview shows 4 photo cells'
+);
+assert.strictEqual(demo.querySelectorAll('.pd-layer').length, 1, 'demo preview shows the theme decoration');
 
 // Click Y2K — selection moves + onPick fires.
 pickedThemes.length = 0;

@@ -592,7 +592,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '4.6.1';
+  var DEBUG_VERSION = '4.7.0';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
