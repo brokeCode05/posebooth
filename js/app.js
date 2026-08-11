@@ -341,7 +341,7 @@
 
   /* ── Public API (consumed by later phases) ──────────────────────────── */
   window.Posebooth = {
-    version: '4.6.0',
+    version: '4.6.1',
     phase: 3,
     getConfig: function () {
       return {

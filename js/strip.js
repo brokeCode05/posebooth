@@ -180,10 +180,12 @@
   }
 
   // Build the visual theme picker. Each option shows a mini mock of the
-  // strip rendered with the REAL theme CSS (class strip-preview theme-demo),
-  // so the preview honestly shows what the strip will look like. Mirrors the
-  // color swatch radiogroup: arrow keys, aria-checked, clear selected ring.
-  function buildThemeSwatches(container, onPick, initialKey) {
+  // strip rendered with the REAL theme CSS (class strip-preview theme-demo)
+  // and stamped with the SELECTED layout via the same data-layout mechanism
+  // the real strip uses — so the theme cards always show what the theme
+  // looks like in the user's current layout. Mirrors the color swatch
+  // radiogroup: arrow keys, aria-checked, clear selected ring.
+  function buildThemeSwatches(container, onPick, initialKey, layout) {
     if (!container) return [];
     container.innerHTML = '';
     var buttons = [];
@@ -197,10 +199,12 @@
       btn.setAttribute('data-theme', t.key);
       btn.setAttribute('aria-label', 'Strip theme: ' + t.name);
 
-      // Mini strip preview that reuses the live theme CSS.
+      // Mini strip preview that reuses the live theme CSS and mirrors the
+      // current layout (vertical | horizontal | grid).
       var demo = document.createElement('span');
       demo.className = 'strip-preview theme-demo';
       demo.setAttribute('data-theme', t.key);
+      demo.setAttribute('data-layout', layoutKey(layout));
       for (var i = 0; i < 4; i++) {
         var cell = document.createElement('i');
         cell.setAttribute('aria-hidden', 'true');
@@ -256,7 +260,7 @@
   }
 
   root.Strip = {
-    version: '4.6.0',
+    version: '4.6.1',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,

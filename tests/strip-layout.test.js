@@ -160,4 +160,19 @@ themeSwatches.children[0].events.keydown({ key: 'ArrowRight', preventDefault: fu
 assert.strictEqual(themeSwatches.children[1].getAttribute('aria-checked'), 'true', 'arrow-right moves theme forward');
 assert.deepStrictEqual(pickedThemes, ['classic'], 'keyboard theme pick fires onPick');
 
+// Theme previews adapt to the selected layout (the demos carry data-layout).
+['vertical', 'horizontal', 'grid'].forEach(function (layout) {
+  var picker = new FakeEl('div');
+  Strip.buildThemeSwatches(picker, null, 'minimal', layout);
+  assert.strictEqual(
+    picker.children[0].children[0].attrs['data-layout'], layout,
+    layout + ': theme previews match the selected layout'
+  );
+});
+
+// Unknown/missing layout falls back to vertical previews.
+var noLayout = new FakeEl('div');
+Strip.buildThemeSwatches(noLayout, null, 'minimal', 'diagonal');
+assert.strictEqual(noLayout.children[0].children[0].attrs['data-layout'], 'vertical', 'unknown layout -> vertical previews');
+
 console.log('strip layout + color + theme tests passed ✓');
