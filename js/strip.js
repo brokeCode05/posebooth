@@ -315,7 +315,7 @@
   }
 
   root.Strip = {
-    version: '4.9.0',
+    version: '4.9.1',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,

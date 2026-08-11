@@ -1874,14 +1874,19 @@ a {
 .pd.tr { top: 4%; right: 4%; }
 .pd.bl { bottom: 5%; left: 4%; }
 .pd.br { bottom: 5%; right: 4%; }
+.pd.tc { top: 3%; left: 50%; transform: translateX(-50%); }
+.pd.bc { bottom: 4%; left: 50%; transform: translateX(-50%); }
+.pd.ml { top: 50%; left: 2.5%; transform: translateY(-50%); }
+.pd.mr { top: 50%; right: 2.5%; transform: translateY(-50%); }
 
-/* Tiny dot */
+/* Tiny dot — a faint white halo keeps it visible on dark strip colours */
 .pd-dot {
   width: 0.55em;
   height: 0.55em;
   border-radius: 50%;
   background: currentColor;
-  opacity: 0.7;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+  opacity: 0.8;
 }
 
 /* ── Theme identities (clean starter templates) ───────────────────────── */
