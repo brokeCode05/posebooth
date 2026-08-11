@@ -2210,6 +2210,8 @@ a {
    translucent backing keeps it readable on any strip color. It is UI
    composition only and is never baked into the captured photos. */
 .pd-date {
+  z-index: 3; /* same layer as the theme decor — stable stacking order */
+  pointer-events: none; /* aria-hidden decorative element, like the decor layer */
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
   font-size: 9px;
   letter-spacing: 0.12em;

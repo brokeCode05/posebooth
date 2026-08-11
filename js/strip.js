@@ -178,9 +178,11 @@
   // frame/border treatment drawn by CSS. There is deliberately NO text on
   // the default strips: no wordmark, no date.
   //
-  // This structure is what later custom themes (and an optional SHOW DATE
-  // element) plug into — e.g. add ['date', 'bc'] here plus the matching
-  // .pd-date CSS when a setting enables it. Date stays OFF by default.
+  // The optional SHOW DATE element (Phase 4E) is handled separately by
+  // applyDate() — a single .pd-date element appended directly to the strip,
+  // OFF by default — rather than living in this per-theme DECOR map, so it
+  // survives theme switches. This map remains the plug-in point for future
+  // custom themes; date stays OFF unless the user enables it.
   var DECOR = {
     minimal: [],
     classic: [],
@@ -494,7 +496,7 @@
   }
 
   root.Strip = {
-    version: '4.12.0',
+    version: '4.12.1',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
