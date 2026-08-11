@@ -40,13 +40,34 @@
     return c.width + ' / ' + c.height;
   }
 
+  // Shared layout geometry — ONE intentional spacing system for every
+  // strip. Values are percentages of the container width (which maps 1:1
+  // onto the master canvas because the container keeps the exact print
+  // ratio), and each layout is computed so photos + gaps + margins fill
+  // the canvas EXACTLY — no leftover flexbox slack, no per-theme offsets,
+  // no arbitrary padding. Every margin and gap is deliberate:
+  //
+  //   vertical (1:3):   pads 8.5% top/bottom, 4% sides, 2.5% gap
+  //                     4 × (92% × ¾) + 3 gaps + 2 × 8.5% = 300% ✓
+  //   horizontal (3:1): pads 8.6% top/bottom, 4% sides, 2.5% gap
+  //                     cells 21.16% → 15.87% tall + 2 × 8.6% = 33.33% ✓
+  //   grid (3:4):       pads 31.8% top/bottom, 4% sides, 2.5% gaps
+  //                     block 69.6% + 2 × 31.8% = 133.2% ≈ 133.33% ✓
+  var GEOMETRY = {
+    vertical:   { padX: '4%',   padTop: '8.5%',  padBottom: '8.5%',  gap: '2.5%' },
+    horizontal: { padX: '4%',   padTop: '8.6%',  padBottom: '8.6%',  gap: '2.5%' },
+    grid:       { padX: '4%',   padTop: '31.8%', padBottom: '31.8%', gap: '2.5%' }
+  };
+
   // Build the strip: exactly four photos in DOM order (photo 1..4), each
   // wrapped in a .photo-cell — an overflow:hidden clip container sized
   // exactly to the photo. The container carries data-layout so the
-  // stylesheet arranges the cells (row, column, 2×2), and an inline
+  // stylesheet arranges the cells (row, column, 2×2), an inline
   // aspect-ratio matching the master canvas so the preview keeps the
-  // exact print proportions. Images use object-fit: cover on a fixed 4:3
-  // frame, so nothing is stretched or distorted.
+  // exact print proportions, and the shared geometry as CSS custom
+  // properties (padding + gap) so the white space is intentional.
+  // Images use object-fit: cover on a fixed 4:3 frame, so nothing is
+  // stretched or distorted.
   //
   // The cell exists to keep photo effects (film grain, soft glow) inside
   // the photo rectangle: the effects are applied to the <img>, and the
@@ -56,8 +77,14 @@
   function renderPreview(container, layout, photos) {
     if (!container) return;
     var taken = (photos || []).slice(0, PHOTO_LIMIT);
-    container.setAttribute('data-layout', layoutKey(layout));
-    container.style.aspectRatio = canvasRatio(layout);
+    var key = layoutKey(layout);
+    container.setAttribute('data-layout', key);
+    container.style.aspectRatio = canvasRatio(key);
+    var g = GEOMETRY[key];
+    container.style.setProperty('--pb-pad-x', g.padX);
+    container.style.setProperty('--pb-pad-top', g.padTop);
+    container.style.setProperty('--pb-pad-bottom', g.padBottom);
+    container.style.setProperty('--pb-gap', g.gap);
     container.innerHTML = '';
     taken.forEach(function (src, i) {
       var cell = document.createElement('span');
@@ -518,7 +545,7 @@
   }
 
   root.Strip = {
-    version: '4.14.1',
+    version: '4.15.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
