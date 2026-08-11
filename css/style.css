@@ -1741,10 +1741,10 @@ a {
   padding: 3% 5%;
 }
 
-/* Horizontal — 4800×3600 master (4:3, an 8×6 print). Four portrait
-   3:4 cells in a row filling the canvas width, centred with symmetric
-   margins — a fuller 8×6 fill, accepting a heavier crop of the landscape
-   webcam frame via object-fit: cover. */
+/* Horizontal — 4800×3600 master (4:3, an 8×6 print). Four square cells
+   in a row filling the canvas width, centred with symmetric margins.
+   Square cells keep the row substantial without the heavy crop a portrait
+   cell would need from the landscape webcam frame. */
 .strip-preview[data-layout="horizontal"] {
   gap: 8px;
   width: min(520px, 94vw);
@@ -1753,7 +1753,7 @@ a {
 
 .strip-preview[data-layout="horizontal"] img {
   width: 23%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
 }
 
 /* 2 × 2 grid — 3600×4800 master (3:4, a 6×8 print). The 2×2 photo block
