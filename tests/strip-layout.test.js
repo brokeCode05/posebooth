@@ -131,7 +131,16 @@ var EXPECTED_GEOMETRY = {
   assert.strictEqual(el.style['--pb-pad-top'], g.padTop, layout + ': top padding');
   assert.strictEqual(el.style['--pb-pad-bottom'], g.padBottom, layout + ': bottom padding');
   assert.strictEqual(el.style['--pb-gap'], g.gap, layout + ': gap');
+  assert.strictEqual(g.padTop, g.padBottom, layout + ': top and bottom margins are equal (no lopsided white space)');
 });
+
+// One shared gap value across every layout — the white space between
+// photos is a single intentional spacing, never per-layout arbitrary.
+assert.strictEqual(
+  new Set(['vertical', 'horizontal', 'grid'].map(function (l) { return EXPECTED_GEOMETRY[l].gap; })).size,
+  1,
+  'every layout shares the same photo gap'
+);
 
 /* ── Strip color (Phase 4B) ──────────────────────────────────────────── */
 assert.strictEqual(Strip.colors.length, 13, '13 curated colors');
@@ -506,4 +515,75 @@ filteredRules.forEach(function (block) {
   assert.ok(/img\s*\{/.test(block), 'every filter rule targets the photo <img> only');
 });
 
-console.log('strip layout + color + theme + filter tests passed ✓');
+/* ── Visual QA: geometry & alignment invariants (Phase 4C/4E refinement)
+   The browser checklist — equal margins, equal gaps, equal cell sizes,
+   straight alignment, no stretching, no mirroring — is locked in at the
+   source level, so a future edit cannot silently reintroduce "accidental
+   spacing" (arbitrary padding, per-theme pixel offsets, flexbox slack). */
+var js = fs.readFileSync(path.join(ROOT, 'js', 'strip.js'), 'utf8');
+
+// 1. Every layout container consumes the shared --pb-gap / --pb-pad vars
+//    (never a hardcoded gap or asymmetric padding).
+['vertical', 'horizontal', 'grid'].forEach(function (layout) {
+  var block = cssNoComments.match(
+    new RegExp('\.strip-preview\\[data-layout="' + layout + '"\\]\\s*\\{([^}]*)\\}', 'm')
+  );
+  assert.ok(block, layout + ': container rule exists');
+  assert.ok(/gap:\s*var\(--pb-gap/.test(block[1]), layout + ': uses the shared gap var');
+  assert.ok(
+    /padding:\s*var\(--pb-pad-top[^;]*var\(--pb-pad-x/.test(block[1]) ||
+    /padding:\s*var\(--pb-pad-top[^;]*var\(--pb-pad-bottom/.test(block[1]),
+    layout + ': margins come from the shared pad vars (no arbitrary pixels)'
+  );
+});
+
+// 2. Photo cells are sized by ONE shared rule per layout — every cell in a
+//    layout is identical, and no theme may resize them differently.
+assert.ok(
+  /\.strip-preview\[data-layout="vertical"\] \.photo-cell\s*\{\s*width:\s*100%;/.test(cssNoComments),
+  'vertical: one rule gives every cell the same width (fills the column)'
+);
+assert.ok(
+  /\.strip-preview\[data-layout="horizontal"\] \.photo-cell\s*\{\s*width:\s*23%;/.test(cssNoComments),
+  'horizontal: one rule gives every cell the same width'
+);
+assert.ok(
+  /grid-template-columns:\s*repeat\(2,\s*1fr\)/.test(cssNoComments),
+  'grid: equal columns via repeat(2, 1fr)'
+);
+var themedCellRules = cssNoComments.split('}').filter(function (block) {
+  return /\[data-theme="[a-z]+"\]\s*\.photo-cell/.test(block) &&
+    /width|height|margin|transform|translate|top:|left:|right:|bottom:/.test(block);
+});
+assert.strictEqual(themedCellRules.length, 0, 'no theme may resize or reposition photos (one shared geometry for all themes)');
+
+// 3. No random pixel offsets: photo cells must never be nudged with
+//    margin/transform — spacing comes only from the geometry vars.
+var cellOffsetRules = cssNoComments.split('}').filter(function (block) {
+  return /\.photo-cell/.test(block) && /margin|transform|translate/.test(block);
+});
+assert.strictEqual(cellOffsetRules.length, 0, 'no photo-cell uses margin/transform offsets (no per-theme hacks)');
+
+// 4. The 2×2 grid block is centered in its frame — not stuck at the top
+//    with a void underneath.
+var gridBlock = cssNoComments.match(/\.strip-preview\[data-layout="grid"\]\s*\{([^}]*)\}/);
+assert.ok(gridBlock, 'grid container rule exists');
+assert.ok(/align-content:\s*center/.test(gridBlock[1]), 'grid: the 2×2 block is centered (balanced frame space)');
+
+// 5. Photos are never stretched or distorted: object-fit cover on a fixed
+//    4:3 frame, no transforms.
+var imgRule = cssNoComments.match(/\.strip-preview \.photo-cell img\s*\{([^}]*)\}/);
+assert.ok(imgRule, 'photo img rule exists');
+assert.ok(/object-fit:\s*cover/.test(imgRule[1]), 'photos use object-fit: cover (no stretching)');
+assert.ok(/aspect-ratio:\s*4\s*\/\s*3/.test(imgRule[1]), 'photos keep a fixed 4:3 frame (consistent, undistorted)');
+assert.ok(!/transform/.test(imgRule[1]), 'photos are never transformed');
+
+// 6. No mirroring anywhere — camera, poses, comparison and strip all stay
+//    in the natural orientation (the user explicitly flagged the mirrored
+//    camera as uncomfortable; it must never come back).
+assert.ok(
+  !/scaleX\(-1\)|scale\(-1/.test(cssNoComments + html + js),
+  'no scaleX(-1) or scale(-1) mirroring anywhere in css/html/js'
+);
+
+console.log('strip layout + color + theme + filter + visual-QA tests passed ✓');
