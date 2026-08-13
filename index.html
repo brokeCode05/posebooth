@@ -26,7 +26,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="css/style.css?v=4.15.2" />
+    <link rel="stylesheet" href="css/style.css?v=4.16.0" />
   </head>
 
   <body>
@@ -535,8 +535,12 @@
               <div class="fx-swatches" id="date-toggle" role="radiogroup" aria-label="Show date"></div>
             </div>
 
-            <p class="strip-note">Downloading arrives in the next step.</p>
-            <button class="btn btn-primary" id="btn-custom-continue" type="button">Continue</button>
+            <!-- Phase 4F: download the finished strip as a PNG -->
+            <div class="export-row">
+              <button class="btn btn-primary" id="btn-download-strip" type="button">Download strip</button>
+              <button class="btn btn-ghost" id="btn-custom-continue" type="button">Continue</button>
+            </div>
+            <p class="export-status" id="export-status" aria-live="polite"></p>
             <button class="btn btn-ghost btn-sm btn-done-ghost" id="btn-custom-restart" type="button">
               Start a new session
             </button>
@@ -548,7 +552,7 @@
     <!-- ============ SITE FOOTER ============ -->
     <footer class="site-foot wrap">
       <span>© 2026 John Bryan Capellan — built by hand, no frameworks.</span>
-      <button class="foot-ver" id="foot-ver" type="button" title="Version & debug panel">v4.15.2</button>
+      <button class="foot-ver" id="foot-ver" type="button" title="Version & debug panel">v4.16.0</button>
       <a href="https://github.com/brokeCode05" target="_blank" rel="noopener">GitHub</a>
     </footer>
 
@@ -569,8 +573,8 @@
       </filter>
     </svg>
 
-    <script src="js/app.js?v=4.15.2"></script>
-    <script src="js/camera.js?v=4.15.2"></script>
-    <script src="js/strip.js?v=4.15.2"></script>
+    <script src="js/app.js?v=4.16.0"></script>
+    <script src="js/camera.js?v=4.16.0"></script>
+    <script src="js/strip.js?v=4.16.0"></script>
   </body>
 </html>

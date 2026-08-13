@@ -71,6 +71,8 @@
       doneCheck: document.getElementById('done-check'),
       customize: document.getElementById('shoot-customize'),
       stripPreview: document.getElementById('strip-preview'),
+      downloadBtn: document.getElementById('btn-download-strip'),
+      exportStatus: document.getElementById('export-status'),
       customContinue: document.getElementById('btn-custom-continue'),
       customRestart: document.getElementById('btn-custom-restart'),
       colorSwatches: document.getElementById('color-swatches'),
@@ -590,6 +592,38 @@
     els.customize.focus({ preventScroll: true });
   }
 
+  /* ── Phase 4F: download the finished strip ─────────────────────────── */
+  // One primary action, guarded against double clicks, with a quiet
+  // loading state and a friendly message on failure (never a stack trace).
+  function setExportStatus(msg, isError) {
+    if (!els.exportStatus) return;
+    els.exportStatus.textContent = msg;
+    els.exportStatus.classList.toggle('is-error', !!isError);
+  }
+
+  function wireDownload() {
+    if (!els.downloadBtn || !window.Strip) return;
+    els.downloadBtn.addEventListener('click', function () {
+      if (els.downloadBtn.disabled) return; // no double downloads
+      var s = Posebooth.getSession();
+      if (!s.photos || s.photos.length < PHOTO_LIMIT) return;
+      els.downloadBtn.disabled = true;
+      els.downloadBtn.setAttribute('aria-busy', 'true');
+      setExportStatus('Preparing your strip…');
+      Strip.downloadStrip(els.stripPreview, Posebooth.getConfig().layout)
+        .then(function () {
+          setExportStatus('Saved — check your downloads.');
+        })
+        .catch(function () {
+          setExportStatus('Couldn\u2019t create your photo. Please try again.', true);
+        })
+        .then(function () {
+          els.downloadBtn.disabled = false;
+          els.downloadBtn.removeAttribute('aria-busy');
+        });
+    });
+  }
+
   // Shared exit: clear the 4 photos and return to the Ready screen.
   function restartSession() {
     if (window.Posebooth) Posebooth.clearPhotos();
@@ -618,7 +652,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '4.15.2';
+  var DEBUG_VERSION = '4.16.0';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
@@ -825,6 +859,7 @@
     els.retry.addEventListener('click', retryCamera);
     els.backSetup.addEventListener('click', cancel);
     els.doneBtn.addEventListener('click', enterCustomize);
+    wireDownload();
     els.customContinue.addEventListener('click', function () {
       // Placeholder — Phase 4B adds colors, styles, filters and download.
     });

@@ -586,4 +586,64 @@ assert.ok(
   'no scaleX(-1) or scale(-1) mirroring anywhere in css/html/js'
 );
 
-console.log('strip layout + color + theme + filter + visual-QA tests passed ✓');
+/* ── Export / download (Phase 4F) ────────────────────────────────────── */
+// Master export dimensions must match the established print sizes exactly
+// — the exported image is never a screenshot of the preview.
+assert.deepStrictEqual(Strip.exportSize('vertical'), { width: 1200, height: 3600 }, 'vertical export = 2×6 (1200×3600)');
+assert.deepStrictEqual(Strip.exportSize('horizontal'), { width: 3600, height: 1200 }, 'horizontal export = 6×2 (3600×1200)');
+assert.deepStrictEqual(Strip.exportSize('grid'), { width: 3600, height: 4800 }, 'grid export = 6×8 (3600×4800)');
+assert.deepStrictEqual(Strip.exportSize('diagonal'), { width: 1200, height: 3600 }, 'unknown layout -> vertical export size');
+
+// Sensible, layout-named filenames (no random identifiers).
+assert.strictEqual(Strip.exportFilename('vertical'), 'posebooth-2x6.png', 'vertical filename');
+assert.strictEqual(Strip.exportFilename('horizontal'), 'posebooth-6x2.png', 'horizontal filename');
+assert.strictEqual(Strip.exportFilename('grid'), 'posebooth-6x8.png', 'grid filename');
+assert.strictEqual(Strip.exportFilename(undefined), 'posebooth-2x6.png', 'missing layout -> vertical filename');
+
+// The SVG shell carries the serialized strip at master resolution inside
+// a foreignObject with the xhtml namespace (required for HTML content).
+var inner = '<div class="strip-preview"></div>';
+var svgMarkup = Strip.exportSvgMarkup(inner, 'grid');
+assert.ok(/^<\?xml version="1.0" encoding="UTF-8"\?>/.test(svgMarkup), 'svg is well-formed xml');
+assert.ok(/width="3600" height="4800"/.test(svgMarkup), 'svg is sized to the grid master canvas');
+assert.ok(/<foreignObject width="100%" height="100%">/.test(svgMarkup), 'svg wraps the strip in foreignObject');
+assert.ok(/<div xmlns="http:\/\/www.w3.org\/1999\/xhtml">/.test(svgMarkup), 'foreignObject content is xhtml-namespaced');
+assert.ok(svgMarkup.indexOf(inner) !== -1, 'serialized strip markup is embedded');
+
+// object-fit: cover crop math — a 16:9 source into a 4:3 photo cell crops
+// horizontally, centered, never stretched.
+var crop = Strip.coverCrop(1280, 720, 800, 600);
+assert.deepStrictEqual(crop, { sx: 160, sy: 0, sw: 960, sh: 720 }, '16:9 -> 4:3 crops sides, keeps all height');
+var crop4to3 = Strip.coverCrop(1200, 900, 800, 600);
+assert.deepStrictEqual(crop4to3, { sx: 0, sy: 0, sw: 1200, sh: 900 }, '4:3 source into 4:3 box is a straight fit');
+
+// Theme frames must survive the export: zero-offset rings and inset
+// shadows (cute/y2k/classic/retro) are kept, offset drop-shadows (the
+// pastel UI glow — preview chrome) are dropped. getComputedStyle
+// serializes color-first with inset last, so both orders are covered.
+assert.strictEqual(
+  Strip.exportBoxShadow('rgba(0, 0, 0, 0.05) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 10px 30px', 1),
+  'rgba(0, 0, 0, 0.05) 0px 0px 0px 2px',
+  'keeps the zero-offset ring, drops the offset drop-shadow'
+);
+assert.strictEqual(
+  Strip.exportBoxShadow('rgba(0, 0, 0, 0.07) 0px 0px 0px 5px inset', 2),
+  'rgba(0, 0, 0, 0.07) 0px 0px 0px 10px inset',
+  'inset shadows are kept and scaled with the canvas'
+);
+assert.strictEqual(Strip.exportBoxShadow('none', 1), '', 'no shadow -> nothing exported');
+
+// The SVG must be loaded as a data: URI — Chromium taints a canvas drawn
+// from a blob-URI SVG-with-foreignObject, and a tainted canvas cannot be
+// exported. Output stays lossless PNG (no JPEG artifacts).
+assert.ok(
+  js.indexOf("'data:image/svg+xml;charset=utf-8,'") !== -1 &&
+    js.indexOf('encodeURIComponent(svg)') !== -1,
+  'export raster loads the SVG as a data URI (never a tainting blob URL)'
+);
+assert.ok(
+  /canvas\.toBlob\([\s\S]*?'image\/png'/.test(js),
+  'export encodes the finished strip as a lossless PNG'
+);
+
+console.log('strip layout + color + theme + filter + visual-QA + export tests passed ✓');

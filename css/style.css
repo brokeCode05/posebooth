@@ -1805,6 +1805,28 @@ a {
   margin: 14px 0;
 }
 
+/* Phase 4F — download row + status. The strip stays the hero; the action
+   is a single primary button with a quiet, live-announced status line. */
+.export-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 4px;
+}
+
+.export-status {
+  min-height: 1em;
+  margin: 4px 0 10px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.export-status.is-error {
+  color: var(--accent-deep);
+}
+
 /* ==========================================================================
    Phase 4B — Strip background color customization
    ========================================================================== */

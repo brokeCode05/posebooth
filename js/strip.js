@@ -552,8 +552,379 @@
     return buildFxRow(container, DATE_OPTIONS, initialOn ? 'on' : 'off', 'data-date', 'Show date', onPick);
   }
 
+  // ── Phase 4F: download / export ──────────────────────────────────────
+  // The export shares ONE source of truth with the preview: the same
+  // CANVAS dimensions, the same GEOMETRY spacing, the same theme/color/
+  // filter/effect/date state. The finished strip is rendered offscreen at
+  // master resolution (1200×3600 / 3600×1200 / 3600×4800) and rasterized
+  // to a PNG — it is never a screenshot of the on-screen preview.
+  //
+  // How it works:
+  //  1. The live preview is deep-cloned and every computed style is
+  //     inlined (px lengths scaled by preview→master factor, so the
+  //     percentage-based geometry re-flows to print size exactly).
+  //     Pseudo-elements (y2k streak/sparkle) are materialized as real
+  //     elements because cloneNode cannot carry ::before/::after.
+  //  2. The clone is serialized into an SVG <foreignObject> and loaded as
+  //     a data: URI — NOT a blob URL, because Chromium taints a canvas
+  //     drawn from a blob-URI SVG-with-foreignObject, and a tainted
+  //     canvas cannot be exported. Data URIs stay origin-clean in every
+  //     browser. This raster carries the frame: strip color, theme
+  //     borders/shadows/gradients, decorations, date, layout.
+  //  3. The four photos are then drawn from their ORIGINAL sources on
+  //     top, one per photo cell, with the photo filter applied via
+  //     ctx.filter and grain/glow composited inside a clip of the cell
+  //     rectangle — so effects can never leak onto the frame, margins or
+  //     background, regardless of strip color or theme.
+
+  // Master export dimensions — straight from the CANVAS table, so the
+  // export is always 2×6 / 6×2 / 6×8 at full print resolution.
+  function exportSize(layout) {
+    var k = layoutKey(layout);
+    return { width: CANVAS[k].width, height: CANVAS[k].height };
+  }
+
+  function exportFilename(layout) {
+    var names = {
+      vertical: 'posebooth-2x6.png',
+      horizontal: 'posebooth-6x2.png',
+      grid: 'posebooth-6x8.png'
+    };
+    return names[layoutKey(layout)];
+  }
+
+  // The SVG shell that carries the serialized strip markup at master
+  // resolution. Kept as a pure string builder so it is unit-testable and
+  // the data-URI/no-blob rule stays visible.
+  function exportSvgMarkup(innerXml, layout) {
+    var m = exportSize(layout);
+    return '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="' + m.width + '" height="' + m.height +
+      '" viewBox="0 0 ' + m.width + ' ' + m.height + '">' +
+      '<foreignObject width="100%" height="100%">' +
+      '<div xmlns="http://www.w3.org/1999/xhtml">' + innerXml + '</div>' +
+      '</foreignObject></svg>';
+  }
+
+  // Multiply every px length inside a computed-style value by s. The
+  // preview and the master canvas differ only by this uniform factor
+  // (the whole geometry system is percentage-based), so scaling the
+  // computed px values reproduces the preview pixel-for-pixel at print
+  // resolution.
+  function scalePxValues(value, s) {
+    return String(value).replace(/(-?[\d.]+)px/g, function (m, n) {
+      return (parseFloat(n) * s) + 'px';
+    });
+  }
+
+  // Split a comma-separated value without splitting inside rgba(...).
+  function splitList(value) {
+    var out = [], depth = 0, cur = '';
+    var str = String(value || '');
+    for (var i = 0; i < str.length; i++) {
+      var ch = str.charAt(i);
+      if (ch === '(') depth++;
+      if (ch === ')') depth--;
+      if (ch === ',' && depth === 0) {
+        out.push(cur.trim());
+        cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+  }
+
+  // Theme frames draw with borders and box-shadows (classic/retro/cute/
+  // y2k use inset shadows or zero-offset rings — those ARE the print's
+  // frame). Only offset drop-shadows (the pastel UI glow) are preview
+  // chrome and must NOT appear in the exported image. getComputedStyle
+  // serializes shadows color-first ("rgba(...) 0px 0px 0px 8px") with
+  // inset last, so the parser tolerates both orders.
+  function exportBoxShadow(computed, s) {
+    var parts = splitList(computed).filter(function (entry) {
+      var t = String(entry).trim();
+      var m = t.match(
+        /^(?:rgba?\([^)]*\)|hsla?\([^)]*\)|#[0-9a-fA-F]{3,8}|[a-zA-Z]+)?\s*(-?[\d.]+)px\s+(-?[\d.]+)px/
+      );
+      return m && parseFloat(m[1]) === 0 && parseFloat(m[2]) === 0;
+    });
+    return parts.map(function (e) { return scalePxValues(e, s); }).join(', ');
+  }
+
+  // Properties that must not be copied from computed style: `content`
+  // (pseudo text is handled by materialization) and the grid tracks
+  // (Chrome reports them as used px, which cannot be scaled — the grid
+  // container is re-set to the authored repeat(2, 1fr) instead).
+  var SKIP_COMPUTED = { content: 1, gridTemplateColumns: 1, gridTemplateRows: 1 };
+
+  // Copy a CSSStyleDeclaration onto an element as inline styles, scaling
+  // px lengths.
+  function applyComputed(el, cs, s) {
+    for (var i = 0; i < cs.length; i++) {
+      var name = cs[i];
+      if (SKIP_COMPUTED[name]) continue;
+      var val = cs.getPropertyValue(name);
+      if (val === '') continue;
+      try {
+        el.style.setProperty(name, scalePxValues(val, s));
+      } catch (e) { /* ignore unsupported properties */ }
+    }
+  }
+
+  function inlineComputed(el, s, pseudo) {
+    applyComputed(el, el.ownerDocument.defaultView.getComputedStyle(el, pseudo || null), s);
+  }
+
+  // cloneNode cannot copy ::before / ::after, so materialize them as real
+  // decorative spans carrying the pseudo's computed styles (the y2k
+  // streak + corner sparkle).
+  function materializePseudo(el, pseudo, s) {
+    var cs = el.ownerDocument.defaultView.getComputedStyle(el, pseudo || null);
+    var content = cs ? cs.content : 'none';
+    if (!cs || content === 'none' || content === 'normal' || content === '') return null;
+    var span = el.ownerDocument.createElement('span');
+    span.setAttribute('aria-hidden', 'true');
+    applyComputed(span, cs, s);
+    var text = String(content).replace(/^(["'])([\s\S]*)\1$/, '$2');
+    if (text) span.textContent = text;
+    return span;
+  }
+
+  // object-fit: cover crop math — the same fitting the preview uses
+  // (photos keep their 4:3 frame, never stretched).
+  function coverCrop(srcW, srcH, boxW, boxH) {
+    var scale = Math.max(boxW / srcW, boxH / srcH);
+    var sw = boxW / scale;
+    var sh = boxH / scale;
+    return {
+      sx: (srcW - sw) / 2,
+      sy: (srcH - sh) / 2,
+      sw: sw,
+      sh: sh
+    };
+  }
+
+  // Film grain — reproduces the preview's SVG feTurbulence→feColorMatrix→
+  // overlay blend as per-pixel noise drawn with the canvas 'overlay' blend
+  // mode, clipped to the photo cell. (feTurbulence fractalNoise is 0..1,
+  // and the matrix maps r=g=b = 0.32·noise + 0.34, a = 0.6·noise.)
+  var grainNoise = null;
+  function getGrainNoise() {
+    if (grainNoise) return grainNoise;
+    var c = document.createElement('canvas');
+    c.width = 128;
+    c.height = 128;
+    var g = c.getContext('2d');
+    var id = g.createImageData(128, 128);
+    var d = id.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var n = Math.random();
+      var v = 0.34 + 0.32 * n;
+      var a = 0.6 * n;
+      d[i] = v * 255;
+      d[i + 1] = v * 255;
+      d[i + 2] = v * 255;
+      d[i + 3] = a * 255;
+    }
+    g.putImageData(id, 0, 0);
+    grainNoise = c;
+    return c;
+  }
+
+  function drawGrain(ctx, x, y, w, h) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay'; // matches feBlend mode="overlay"
+    ctx.fillStyle = ctx.createPattern(getGrainNoise(), 'repeat');
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
+  }
+
+  // Soft Glow — the preview's inset white shadows as two clipped radial
+  // gradients (outer soft ring + tighter inner ring). Always clipped to
+  // the photo rectangle, so no glow can touch the frame or margins.
+  function drawGlow(ctx, x, y, w, h) {
+    var cx = x + w / 2;
+    var cy = y + h / 2;
+    var mx = Math.max(w, h);
+    var mn = Math.min(w, h);
+    var outer = ctx.createRadialGradient(cx, cy, mn * 0.30, cx, cy, mx * 0.78);
+    outer.addColorStop(0, 'rgba(255,255,255,0)');
+    outer.addColorStop(1, 'rgba(255,255,255,0.32)');
+    ctx.fillStyle = outer;
+    ctx.fillRect(x, y, w, h);
+    var inner = ctx.createRadialGradient(cx, cy, mx * 0.40, cx, cy, mx * 0.52);
+    inner.addColorStop(0, 'rgba(255,255,255,0)');
+    inner.addColorStop(1, 'rgba(255,255,255,0.20)');
+    ctx.fillStyle = inner;
+    ctx.fillRect(x, y, w, h);
+  }
+
+  // Draw the four photos from their original sources into their cell
+  // rects, applying the photo filter (ctx.filter) and the optional effect
+  // — every step clipped to the exact photo rectangle. The clone's imgs
+  // are used directly as drawImage sources: they are already decoded
+  // (same data URLs as the live preview) and a CSS filter on the element
+  // does not affect drawImage, which reads the intrinsic bitmap.
+  function drawPhotosAndEffects(ctx, clone, effect, filterCss) {
+    var cells = clone.querySelectorAll ? clone.querySelectorAll('.photo-cell') : [];
+    if (!cells.length) return;
+    var crect = clone.getBoundingClientRect();
+    var supportsFilter = typeof ctx.filter === 'string';
+    var glowBoost = effect === 'glow' ? ' brightness(1.06) contrast(0.97)' : '';
+    for (var i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      var imgEl = cell.querySelector ? cell.querySelector('img') : null;
+      if (!imgEl || !imgEl.naturalWidth) continue;
+      var r = cell.getBoundingClientRect();
+      var x = Math.round(r.left - crect.left);
+      var y = Math.round(r.top - crect.top);
+      var w = Math.round(r.width);
+      var h = Math.round(r.height);
+      if (w <= 0 || h <= 0) continue;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      ctx.clip();
+      var c = coverCrop(imgEl.naturalWidth, imgEl.naturalHeight, w, h);
+      if (supportsFilter && filterCss) ctx.filter = filterCss + glowBoost;
+      ctx.drawImage(imgEl, c.sx, c.sy, c.sw, c.sh, x, y, w, h);
+      ctx.filter = 'none';
+      if (effect === 'grain') drawGrain(ctx, x, y, w, h);
+      else if (effect === 'glow') drawGlow(ctx, x, y, w, h);
+      ctx.restore();
+    }
+  }
+
+  // Render the finished strip to a canvas at master resolution. Resolves
+  // with the canvas (never tainted — the SVG is loaded as a data URI).
+  function exportToCanvas(preview, layout) {
+    return new Promise(function (resolve, reject) {
+      var key = layoutKey(layout);
+      var master = exportSize(key);
+      var host = null;
+      var clone = null;
+      var cleanup = function () {
+        if (host && host.parentNode) host.parentNode.removeChild(host);
+        host = null;
+        clone = null;
+      };
+      try {
+        var rect = preview.getBoundingClientRect();
+        var scale = master.width / Math.max(1, rect.width);
+        var liveEffect = preview.getAttribute('data-effect') || 'none';
+        // The photo filter is the container's --pb-filter (inline from
+        // applyPhotoFilter); the browser resolves it on the live imgs.
+        var filterCss = preview.style.getPropertyValue('--pb-filter') || 'brightness(1)';
+
+        host = document.createElement('div');
+        host.setAttribute('aria-hidden', 'true');
+        host.style.cssText = 'position:fixed;left:-99999px;top:0;' +
+          'width:' + master.width + 'px;height:' + master.height + 'px;' +
+          'overflow:hidden;pointer-events:none;';
+        clone = preview.cloneNode(true);
+        // The effects are composited on canvas (deterministically clipped
+        // to the photos) — remove data-effect so the clone's imgs carry
+        // only the photo filter, never grain/glow.
+        clone.removeAttribute('data-effect');
+        host.appendChild(clone);
+        document.body.appendChild(host);
+
+        (function walk(node) {
+          if (!node || node.nodeType !== 1) return;
+          inlineComputed(node, scale, null);
+          var before = materializePseudo(node, '::before', scale);
+          if (before) node.insertBefore(before, node.firstChild);
+          var after = materializePseudo(node, '::after', scale);
+          if (after) node.appendChild(after);
+          var kids = node.children;
+          for (var i = 0; i < kids.length; i++) walk(kids[i]);
+        })(clone);
+
+        // Pin the clone to the master canvas; everything inside is already
+        // proportionally scaled.
+        clone.style.width = master.width + 'px';
+        clone.style.height = master.height + 'px';
+        clone.style.aspectRatio = 'auto';
+        if (key === 'grid') {
+          clone.style.gridTemplateColumns = 'repeat(2, 1fr)';
+          clone.style.gridTemplateRows = 'auto';
+        }
+        var shadow = clone.ownerDocument.defaultView.getComputedStyle(clone).boxShadow;
+        if (shadow && shadow !== 'none') clone.style.boxShadow = exportBoxShadow(shadow, scale);
+
+        var xml = new XMLSerializer().serializeToString(clone);
+        var svg = exportSvgMarkup(xml, key);
+        var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var canvas = document.createElement('canvas');
+            canvas.width = master.width;
+            canvas.height = master.height;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, master.width, master.height);
+            // Re-draw the photos from source: sharp at master resolution,
+            // filtered via ctx.filter, effects clipped to each photo.
+            drawPhotosAndEffects(ctx, clone, liveEffect, filterCss);
+            cleanup();
+            resolve(canvas);
+          } catch (e) {
+            cleanup();
+            reject(e);
+          }
+        };
+        img.onerror = function () {
+          cleanup();
+          reject(new Error('render failed'));
+        };
+        img.src = url;
+      } catch (e) {
+        cleanup();
+        reject(e);
+      }
+    });
+  }
+
+  function triggerDownload(href, filename) {
+    var a = document.createElement('a');
+    a.href = href;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    if (href.indexOf('blob:') === 0) {
+      setTimeout(function () { URL.revokeObjectURL(href); }, 4000);
+    }
+  }
+
+  // Export the finished strip as a lossless PNG and save it with a
+  // sensible filename (posebooth-2x6.png / -6x2.png / -6x8.png).
+  function downloadStrip(preview, layout) {
+    return exportToCanvas(preview, layout).then(function (canvas) {
+      return new Promise(function (resolve, reject) {
+        var filename = exportFilename(layout);
+        if (typeof canvas.toBlob === 'function') {
+          canvas.toBlob(function (blob) {
+            if (!blob) {
+              reject(new Error('PNG encoding failed'));
+              return;
+            }
+            triggerDownload(URL.createObjectURL(blob), filename);
+            resolve(true);
+          }, 'image/png');
+        } else {
+          triggerDownload(canvas.toDataURL('image/png'), filename);
+          resolve(true);
+        }
+      });
+    });
+  }
+
   root.Strip = {
-    version: '4.15.2',
+    version: '4.16.0',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,
@@ -575,7 +946,14 @@
     buildFilterSwatches: buildFilterSwatches,
     buildEffectSwatches: buildEffectSwatches,
     applyDate: applyDate,
-    buildDateToggle: buildDateToggle
+    buildDateToggle: buildDateToggle,
+    exportSize: exportSize,
+    exportFilename: exportFilename,
+    exportSvgMarkup: exportSvgMarkup,
+    exportBoxShadow: exportBoxShadow,
+    coverCrop: coverCrop,
+    exportToCanvas: exportToCanvas,
+    downloadStrip: downloadStrip
   };
 
   // Allow the layout logic to be smoke-tested in Node.
