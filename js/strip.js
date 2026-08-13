@@ -152,7 +152,17 @@
       btn.setAttribute('data-hex', c.hex);
       btn.setAttribute('aria-label', 'Strip color: ' + c.name);
       btn.title = c.name;
-      btn.style.backgroundColor = c.hex;
+      // The swatch is a small column: a colour dot (the actual swatch,
+      // carrying the inline background) with its NAME visible underneath —
+      // unlabelled circles make colours like Cream impossible to find.
+      var dot = document.createElement('i');
+      dot.className = 'swatch-dot';
+      dot.style.backgroundColor = c.hex;
+      var label = document.createElement('span');
+      label.className = 'swatch-name';
+      label.textContent = c.name;
+      btn.appendChild(dot);
+      btn.appendChild(label);
       btn.addEventListener('click', function () {
         pick(btn);
         if (onPick) onPick(c.hex);
@@ -598,8 +608,9 @@
   // the data-URI/no-blob rule stays visible.
   function exportSvgMarkup(innerXml, layout) {
     var m = exportSize(layout);
-    return '<?xml version="1.0" encoding="UTF-8"?>' +
-      '<svg xmlns="http://www.w3.org/2000/svg" width="' + m.width + '" height="' + m.height +
+    // No <?xml?> declaration: some browsers refuse to decode an SVG image
+    // that carries one, which would make the raster silently fail.
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + m.width + '" height="' + m.height +
       '" viewBox="0 0 ' + m.width + ' ' + m.height + '">' +
       '<foreignObject width="100%" height="100%">' +
       '<div xmlns="http://www.w3.org/1999/xhtml">' + innerXml + '</div>' +
@@ -858,7 +869,14 @@
         var svg = exportSvgMarkup(xml, key);
         var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
         var img = new Image();
+        // Watchdog: never let the export hang silently — the UI must
+        // always get either a canvas or a failure.
+        var watchdog = setTimeout(function () {
+          cleanup();
+          reject(new Error('export timed out'));
+        }, 20000);
         img.onload = function () {
+          clearTimeout(watchdog);
           try {
             var canvas = document.createElement('canvas');
             canvas.width = master.width;
@@ -876,6 +894,7 @@
           }
         };
         img.onerror = function () {
+          clearTimeout(watchdog);
           cleanup();
           reject(new Error('render failed'));
         };
@@ -924,7 +943,7 @@
   }
 
   root.Strip = {
-    version: '4.16.0',
+    version: '4.16.1',
     canvas: CANVAS,
     layoutKey: layoutKey,
     canvasRatio: canvasRatio,

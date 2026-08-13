@@ -1851,27 +1851,53 @@ a {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
-  max-width: 420px;
+  gap: 6px 10px;
+  max-width: 500px;
   margin: 0 auto;
 }
 
+/* Each swatch is a small column: the colour dot + its NAME underneath, so
+   every colour is identifiable at a glance (plain circles are not). */
 .swatch {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease);
+}
+
+.swatch .swatch-dot {
   width: 34px;
   height: 34px;
   border-radius: 50%;
   border: 1px solid var(--line-strong);
-  cursor: pointer;
-  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
 }
 
 .swatch:hover {
-  transform: scale(1.08);
+  transform: translateY(-2px);
 }
 
-/* Selected ring: accent-coloured border separated by a bg-colour gap. */
-.swatch.is-selected {
+.swatch:hover .swatch-dot {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04), 0 0 0 2px var(--line);
+}
+
+.swatch .swatch-name {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* Selected ring on the dot: accent-coloured border separated by a
+   bg-colour gap. */
+.swatch.is-selected .swatch-dot {
   box-shadow:
     0 0 0 2px var(--bg),
     0 0 0 4px var(--accent);

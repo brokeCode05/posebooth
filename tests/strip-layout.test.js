@@ -184,6 +184,16 @@ assert.strictEqual(blush.getAttribute('aria-checked'), 'true', 'blush selected a
 assert.strictEqual(swatches.children[0].getAttribute('aria-checked'), 'false', 'white deselected');
 assert.deepStrictEqual(picked, ['#f7cdd4'], 'onPick receives the picked hex');
 
+// Every swatch shows its colour NAME under the dot — unlabelled circles
+// make colours like Cream impossible to find.
+var blushDot = swatches.children[2].children[0];
+var blushLabel = swatches.children[2].children[1];
+assert.strictEqual(blushDot.className, 'swatch-dot', 'swatch carries its colour dot');
+assert.strictEqual(blushDot.style.backgroundColor, '#f7cdd4', 'the dot carries the colour');
+assert.strictEqual(blushLabel.className, 'swatch-name', 'swatch carries a name label');
+assert.strictEqual(blushLabel.textContent, 'Blush', 'the label shows the colour name');
+assert.strictEqual(swatches.children[3].children[1].textContent, 'Peach', 'every colour is labelled');
+
 // Re-entering customize with a non-white stored colour must highlight the
 // right swatch (matched via data-hex, robust to browsers serializing
 // style.backgroundColor back as rgb(...)).
@@ -604,7 +614,8 @@ assert.strictEqual(Strip.exportFilename(undefined), 'posebooth-2x6.png', 'missin
 // a foreignObject with the xhtml namespace (required for HTML content).
 var inner = '<div class="strip-preview"></div>';
 var svgMarkup = Strip.exportSvgMarkup(inner, 'grid');
-assert.ok(/^<\?xml version="1.0" encoding="UTF-8"\?>/.test(svgMarkup), 'svg is well-formed xml');
+assert.ok(/^<svg/.test(svgMarkup), 'svg starts with the svg root');
+assert.ok(!/<\?xml/.test(svgMarkup), 'no XML declaration (some browsers refuse to decode an SVG image that carries one)');
 assert.ok(/width="3600" height="4800"/.test(svgMarkup), 'svg is sized to the grid master canvas');
 assert.ok(/<foreignObject width="100%" height="100%">/.test(svgMarkup), 'svg wraps the strip in foreignObject');
 assert.ok(/<div xmlns="http:\/\/www.w3.org\/1999\/xhtml">/.test(svgMarkup), 'foreignObject content is xhtml-namespaced');

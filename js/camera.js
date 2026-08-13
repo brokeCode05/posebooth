@@ -606,15 +606,35 @@
     els.downloadBtn.addEventListener('click', function () {
       if (els.downloadBtn.disabled) return; // no double downloads
       var s = Posebooth.getSession();
-      if (!s.photos || s.photos.length < PHOTO_LIMIT) return;
+      if (!s.photos || s.photos.length < PHOTO_LIMIT) {
+        setExportStatus('Capture all 4 photos first.', true);
+        return;
+      }
+      if (typeof Strip.downloadStrip !== 'function') {
+        setExportStatus('This build is outdated \u2014 hard-refresh to get the latest.', true);
+        return;
+      }
       els.downloadBtn.disabled = true;
       els.downloadBtn.setAttribute('aria-busy', 'true');
-      setExportStatus('Preparing your strip…');
-      Strip.downloadStrip(els.stripPreview, Posebooth.getConfig().layout)
+      setExportStatus('Rendering your strip…');
+      var p = null;
+      try {
+        p = Strip.downloadStrip(els.stripPreview, Posebooth.getConfig().layout);
+      } catch (err) {
+        if (window.console) console.error('Posebooth export failed:', err);
+      }
+      if (!p || typeof p.then !== 'function') {
+        els.downloadBtn.disabled = false;
+        els.downloadBtn.removeAttribute('aria-busy');
+        setExportStatus('Couldn\u2019t create your photo. Please try again.', true);
+        return;
+      }
+      p
         .then(function () {
-          setExportStatus('Saved — check your downloads.');
+          setExportStatus('Saved \u2014 check your downloads.');
         })
-        .catch(function () {
+        .catch(function (err) {
+          if (window.console) console.error('Posebooth export failed:', err);
           setExportStatus('Couldn\u2019t create your photo. Please try again.', true);
         })
         .then(function () {
@@ -652,7 +672,7 @@
   /* ── Debug helpers (hidden — open with the D key or ?debug=1) ───────── */
   var debugPanel = null;
   var debugTimer = null;
-  var DEBUG_VERSION = '4.16.0';
+  var DEBUG_VERSION = '4.16.1';
 
   // Self-heal: if app.js and camera.js don't match (stale mixed cache),
   // force a fresh load through a cache-busting URL once.
