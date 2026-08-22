@@ -1,0 +1,14 @@
+{
+  "name": "posebooth",
+  "version": "4.16.1",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "build": "echo 'No build step required'",
+    "start": "node server.js",
+    "test": "node tests/strip-layout.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

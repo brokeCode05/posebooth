@@ -1,0 +1,10 @@
+{
+  "name": "Posebooth",
+  "description": "A playful web photobooth where you take four photos and create a custom strip with pose prompts, layout options, themes, and filters.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
